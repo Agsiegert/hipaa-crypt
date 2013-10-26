@@ -8,7 +8,7 @@ Provide a universal wrapper for encrypting data in plain old ruby objects.
 
 ```ruby
 encrypt :foo,
-  attr: :encrypted_foo # implicit
+  attr: :encrypted_foo, # implicit
   encryptor: HippaCrypt::Encryptor # implicit
   
 ```
