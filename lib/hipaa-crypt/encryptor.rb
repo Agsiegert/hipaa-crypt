@@ -7,10 +7,10 @@ module HipaaCrypt
     autoload :ContextualOptions, 'hipaa-crypt/encryptor/contextual_options'
     attr_reader :options, :cipher
 
-    def initialize(options={}, context = self)
+    def initialize(options={})
       options     = options.dup
       self.cipher = options.delete(:cipher) { { name: :AES, key_length: 256, mode: :CBC } }
-      @options    = ContextualOptions.new(options).with_context(context)
+      @options    = ContextualOptions.new(options)
     end
 
     def decrypt(string)
@@ -35,6 +35,10 @@ module HipaaCrypt
 
     def key
       options.get(:key){ raise ArgumentError, 'you must provide a key to encrypt an attribute' }
+    end
+
+    def with_context(context)
+      dup.tap { |encryptor| encryptor.instance_variable_set :@options, options.with_context(context) }
     end
 
     protected
