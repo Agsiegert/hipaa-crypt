@@ -4,14 +4,22 @@ describe HipaaCrypt::Encryptor do
 
   let(:options) { { key: SecureRandom.hex } }
   subject(:encryptor) { described_class.new(options) }
-  let(:normalizer_double) do
-    double.tap do |object|
-      allow(object).to receive(:normalize_options) { |options| options }
-    end
-  end
+
+  # Define a dummy contextual options that fetches from a hash
   before(:each) do
-    allow(HipaaCrypt::Encryptor::Normalizer)
-    .to receive(:new).and_return(normalizer_double)
+    klass = Class.new do
+
+      def initialize(options, context)
+        @options = options
+      end
+
+      def get(key, context = nil, &block)
+        @options.fetch key, (block.call if block_given?)
+      end
+
+    end
+
+    stub_const('HipaaCrypt::Encryptor::ContextualOptions', klass)
   end
 
   describe '.new' do
@@ -41,11 +49,8 @@ describe HipaaCrypt::Encryptor do
     end
 
     it 'should assign normalized options' do
-      expect(HipaaCrypt::Encryptor::Normalizer)
-      .to receive(:new)
-          .and_return(normalizer_double)
       instance = described_class.new(options)
-      instance.options.should eq options.reject { |k| [:key, :iv, :cipher].include? k }
+      instance.options.should be_an_instance_of HipaaCrypt::Encryptor::ContextualOptions
     end
   end
 

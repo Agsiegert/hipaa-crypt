@@ -4,14 +4,14 @@ require 'openssl/cipher'
 module HipaaCrypt
   class Encryptor
 
-    autoload :Normalizer, 'hipaa-crypt/encryptor/normalizer'
+    autoload :ContextualOptions, 'hipaa-crypt/encryptor/contextual_options'
     attr_reader :options, :cipher, :key
 
     def initialize(options={}, context = self)
       options     = options.dup
       self.cipher = options.delete(:cipher) { { name: :AES, key_length: 256, mode: :CBC } }
       @key        = options.delete(:key) { raise ArgumentError, 'you must provide a key to encrypt an attribute' }
-      @options    = Normalizer.new(context).normalize_options(options)
+      @options    = ContextualOptions.new(options, context)
     end
 
     def encrypt(value)
@@ -53,7 +53,7 @@ module HipaaCrypt
     end
 
     def generate_iv
-      options.fetch :iv, OpenSSL::Random.random_bytes(cipher.iv_len)
+      options.get(:iv){ OpenSSL::Random.random_bytes(cipher.iv_len) }
     end
 
     def invoke_hook_on_value(hook, value)
@@ -68,11 +68,11 @@ module HipaaCrypt
     end
 
     def run_after_hooks(value)
-      run_hooks options[:after_load], value
+      run_hooks options.get(:after_load), value
     end
 
     def run_before_hooks(value)
-      run_hooks options[:before_encrypt], value
+      run_hooks options.get(:before_encrypt), value
     end
 
     def run_hooks(hooks, value)
