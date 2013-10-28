@@ -56,30 +56,12 @@ module HipaaCrypt
       options.get(:iv){ OpenSSL::Random.random_bytes(cipher.iv_len) }
     end
 
-    def invoke_hook_on_value(hook, value)
-      case hook
-      when Symbol
-        value.send(value)
-      when Proc
-        hook.call(value)
-      else
-        raise ArgumentError, 'hooks may only be symbols or procs'
-      end
-    end
-
     def run_after_hooks(value)
-      run_hooks options.get(:after_load), value
+      options.with_context(value).get(:after_load)
     end
 
     def run_before_hooks(value)
-      run_hooks options.get(:before_encrypt), value
-    end
-
-    def run_hooks(hooks, value)
-      hooks = [hooks].flatten.compact
-      hooks.reduce(value) do |hook, v|
-        invoke_hook_on_value hook, v
-      end
+      options.with_context(value).get(:before_encrypt)
     end
 
   end
