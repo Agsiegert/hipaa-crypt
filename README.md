@@ -40,7 +40,7 @@ end
 ```
 
 ```ruby
-$ Poro.re_encrypt(old_options)
+$> Poro.re_encrypt(old_options)
 ```
   
   
