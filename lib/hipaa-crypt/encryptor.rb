@@ -15,7 +15,8 @@ module HipaaCrypt
     end
 
     def encrypt(value)
-      value = run_before_hooks(value)
+      value = run_before_hook(value)
+      cipher.reset
       cipher.encrypt
       cipher.key = key
       iv = generate_iv
@@ -25,11 +26,12 @@ module HipaaCrypt
 
     def decrypt(string)
       encrypted_object = decode_and_load string
+      cipher.reset
       cipher.decrypt
       cipher.key = key
       cipher.iv  = encrypted_object.iv
       value      = cipher.update(encrypted_object.value) + cipher.final
-      run_after_hooks(value)
+      run_after_hook(value)
     end
 
     protected
@@ -56,12 +58,12 @@ module HipaaCrypt
       options.get(:iv){ OpenSSL::Random.random_bytes(cipher.iv_len) }
     end
 
-    def run_after_hooks(value)
-      options.with_context(value).get(:after_load)
+    def run_after_hook(value)
+      options.with_context(value).get(:after_load){ value }
     end
 
-    def run_before_hooks(value)
-      options.with_context(value).get(:before_encrypt)
+    def run_before_hook(value)
+      options.with_context(value).get(:before_encrypt){ value }
     end
 
   end

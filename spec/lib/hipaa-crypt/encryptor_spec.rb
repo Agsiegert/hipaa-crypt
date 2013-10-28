@@ -5,27 +5,6 @@ describe HipaaCrypt::Encryptor do
   let(:options) { { key: SecureRandom.hex } }
   subject(:encryptor) { described_class.new(options) }
 
-  # Define a dummy contextual options that fetches from a hash
-  before(:each) do
-    klass = Class.new do
-
-      def initialize(options)
-        @options = options
-      end
-
-      def get(key, &block)
-        @options.fetch key, (block.call if block_given?)
-      end
-
-      def with_context(context)
-        self
-      end
-
-    end
-
-    stub_const('HipaaCrypt::Encryptor::ContextualOptions', klass)
-  end
-
   describe '.new' do
     context 'if a cipher is provided' do
       let(:options) { { key: SecureRandom.hex, cipher: 'aes-256-cbc' } }
@@ -63,10 +42,17 @@ describe HipaaCrypt::Encryptor do
 
     it 'should call #run_before_hooks with the value' do
       expect(encryptor)
-      .to receive(:run_before_hooks)
+      .to receive(:run_before_hook)
           .with(value)
           .and_return(value)
       encryptor.encrypt value
+    end
+
+    it 'should reset the cipher' do
+      expect(encryptor.cipher)
+      .to receive(:reset)
+          .and_call_original
+      encryptor.encrypt(value)
     end
 
     it 'should tell the cipher its encrypting' do
@@ -118,6 +104,13 @@ describe HipaaCrypt::Encryptor do
       encryptor.decrypt(encrypted_value)
     end
 
+    it 'should reset the cipher' do
+      expect(encryptor.cipher)
+      .to receive(:reset)
+          .and_call_original
+      encryptor.decrypt(encrypted_value)
+    end
+
     it 'should tell the cipher its encrypting' do
       expect(encryptor.cipher)
       .to receive(:decrypt)
@@ -144,7 +137,7 @@ describe HipaaCrypt::Encryptor do
 
     it 'should call #run_after_hooks with the value' do
       expect(encryptor)
-      .to receive(:run_after_hooks)
+      .to receive(:run_after_hook)
           .with(value)
           .and_return(value)
       encryptor.decrypt encrypted_value
@@ -222,20 +215,34 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
-  describe '#invoke_hook_on_value' do
-    pending
+  describe '#run_after_hook' do
+    context 'when a hook is provided' do
+      let(:options) { { key: SecureRandom.hex, iv: SecureRandom.hex, after_load: :upcase } }
+      it 'should run the hook on the value' do
+        encryptor.send(:run_after_hook, 'foo').should eq 'FOO'
+      end
+    end
+
+    context 'when a hook is not provided' do
+      it 'should return the value' do
+        encryptor.send(:run_after_hook, 'foo').should eq 'foo'
+      end
+    end
   end
 
-  describe '#run_after_hooks' do
-    pending
-  end
+  describe '#run_before_hook' do
+    context 'when a hook is provided' do
+      let(:options) { { key: SecureRandom.hex, iv: SecureRandom.hex, before_encrypt: :upcase } }
+      it 'should run the hook on the value' do
+        encryptor.send(:run_before_hook, 'foo').should eq 'FOO'
+      end
+    end
 
-  describe '#run_before_hooks' do
-    pending
-  end
-
-  describe '#run_hooks' do
-    pending
+    context 'when a hook is not provided' do
+      it 'should return the value' do
+        encryptor.send(:run_before_hook, 'foo').should eq 'foo'
+      end
+    end
   end
 
 end
