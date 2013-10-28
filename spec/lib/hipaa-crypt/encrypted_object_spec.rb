@@ -6,7 +6,7 @@ describe HipaaCrypt::EncryptedObject do
     let(:value) { "value" }
     let(:iv) { SecureRandom.hex }
     subject(:instance) { described_class.allocate }
-    
+
     it 'should set a value' do
       expect { instance.send(:initialize, value, iv) }
       .to change { instance.value }

@@ -37,58 +37,6 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
-  describe '#encrypt' do
-    let(:value) { %w{foo bar baz raz}.sample }
-
-    it 'should call #run_before_hooks with the value' do
-      expect(encryptor)
-      .to receive(:run_before_hook)
-          .with(value)
-          .and_return(value)
-      encryptor.encrypt value
-    end
-
-    it 'should reset the cipher' do
-      expect(encryptor.cipher)
-      .to receive(:reset)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should tell the cipher its encrypting' do
-      expect(encryptor.cipher)
-      .to receive(:encrypt)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should set the cipher key' do
-      expect(encryptor.cipher)
-      .to receive(:key=)
-          .with(encryptor.key)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should set the cipher iv' do
-      iv = SecureRandom.uuid
-      allow(encryptor)
-      .to receive(:generate_iv)
-          .and_return(iv)
-      expect(encryptor.cipher)
-      .to receive(:iv=)
-          .with(iv)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should call dump and encode with an encrypted value' do
-      expect(encryptor).to receive(:dump_and_encode)
-      encryptor.encrypt('foo')
-    end
-
-  end
-
   describe '#decrypt' do
     let(:value) { %w{foo bar baz raz}.sample }
     let(:encrypted_value) { described_class.new(options).encrypt(value) }
@@ -144,8 +92,80 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
+  describe '#encrypt' do
+    let(:value) { %w{foo bar baz raz}.sample }
+
+    it 'should call #run_before_hooks with the value' do
+      expect(encryptor)
+      .to receive(:run_before_hook)
+          .with(value)
+          .and_return(value)
+      encryptor.encrypt value
+    end
+
+    it 'should reset the cipher' do
+      expect(encryptor.cipher)
+      .to receive(:reset)
+          .and_call_original
+      encryptor.encrypt(value)
+    end
+
+    it 'should tell the cipher its encrypting' do
+      expect(encryptor.cipher)
+      .to receive(:encrypt)
+          .and_call_original
+      encryptor.encrypt(value)
+    end
+
+    it 'should set the cipher key' do
+      expect(encryptor.cipher)
+      .to receive(:key=)
+          .with(encryptor.key)
+          .and_call_original
+      encryptor.encrypt(value)
+    end
+
+    it 'should set the cipher iv' do
+      iv = SecureRandom.uuid
+      allow(encryptor)
+      .to receive(:generate_iv)
+          .and_return(iv)
+      expect(encryptor.cipher)
+      .to receive(:iv=)
+          .with(iv)
+          .and_call_original
+      encryptor.encrypt(value)
+    end
+
+    it 'should call dump and encode with an encrypted value' do
+      expect(encryptor).to receive(:dump_and_encode)
+      encryptor.encrypt('foo')
+    end
+
+  end
+
+  describe '#key' do
+    it 'should invoke a get with :key on the options' do
+      expect(encryptor.options).to receive(:get).with(:key)
+      encryptor.key
+    end
+
+    context 'when options has a key' do
+      it 'should return the value' do
+        encryptor.key.should eq options[:key]
+      end
+    end
+
+    context 'when the options does not have a key' do
+      let(:options){ {} }
+      it 'should raise an ArgumentError' do
+        expect { encryptor.key }.to raise_error(ArgumentError)
+      end
+    end
+  end
+
   describe '#cipher=' do
-    context 'given the value is a String' do
+    context 'when the value is a String' do
       it 'should try to initialize a OpenSSL::Cipher with the string' do
         encryptor # call to invoke cipher setter
         string = 'foo'
@@ -154,7 +174,7 @@ describe HipaaCrypt::Encryptor do
       end
     end
 
-    context 'given the value is a Hash' do
+    context 'when the value is a Hash' do
       it 'should try to initialize a OpenSSL::Cipher with the result of #cipher_string_from_hash' do
         hash   = { foo: 'bar' }
         string = 'foo_bar'
