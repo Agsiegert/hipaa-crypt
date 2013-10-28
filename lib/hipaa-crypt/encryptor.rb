@@ -51,7 +51,7 @@ module HipaaCrypt
     end
 
     def dump_and_encode(string, iv)
-      Base64.encode64 Marshal.dump EncryptedObject.new(value: string, iv: iv)
+      Base64.encode64 Marshal.dump EncryptedObject.new(string, iv)
     end
 
     def generate_iv

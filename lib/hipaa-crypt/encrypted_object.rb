@@ -3,9 +3,9 @@ module HipaaCrypt
 
     attr_reader :iv, :value
 
-    def initialize(options={})
-      @iv    = options.delete(:iv) { raise ArgumentError, 'an iv is required' }
-      @value = options.delete(:value) { raise ArgumentError, 'a value is required' }
+    def initialize(value, iv)
+      @value = value
+      @iv    = iv
     end
 
   end
