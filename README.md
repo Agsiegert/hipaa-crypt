@@ -38,4 +38,9 @@ class Poro
     
 end
 ```
+
+```ruby
+$ Poro.re_encrypt(old_options)
+```
+  
   
