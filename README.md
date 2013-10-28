@@ -28,8 +28,8 @@ class Poro
   include HippaCrypt::Attributes
 
   encrypt :foo,
-    cipher: { name: :AES, key_length: 256, mode: :CBC }, # required
     key: ENV['ENCRYPTION_KEY'], # required
+    cipher: { name: :AES, key_length: 256, mode: :CBC }, # optional
     iv: nil, # optional
     before_encrypt: ->(value){ value.to_s }, # optional
     after_decrypt: ->(value){ value.to_s }, # optional
@@ -38,4 +38,9 @@ class Poro
     
 end
 ```
+
+```ruby
+$> Poro.re_encrypt(old_options)
+```
+  
   
