@@ -9,12 +9,16 @@ describe HipaaCrypt::Encryptor do
   before(:each) do
     klass = Class.new do
 
-      def initialize(options, context)
+      def initialize(options)
         @options = options
       end
 
-      def get(key, context = nil, &block)
+      def get(key, &block)
         @options.fetch key, (block.call if block_given?)
+      end
+
+      def with_context(context)
+        self
       end
 
     end

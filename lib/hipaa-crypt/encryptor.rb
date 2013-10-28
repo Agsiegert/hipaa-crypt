@@ -11,7 +11,7 @@ module HipaaCrypt
       options     = options.dup
       self.cipher = options.delete(:cipher) { { name: :AES, key_length: 256, mode: :CBC } }
       @key        = options.delete(:key) { raise ArgumentError, 'you must provide a key to encrypt an attribute' }
-      @options    = ContextualOptions.new(options, context)
+      @options    = ContextualOptions.new(options).with_context(context)
     end
 
     def encrypt(value)

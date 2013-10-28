@@ -2,18 +2,25 @@ module HipaaCrypt
   class Encryptor
     class ContextualOptions
 
-      attr_reader :context, :options
+      attr_reader :options
 
-      def initialize(options, context)
+      def initialize(options)
         @options = options
-        @context = context
       end
 
-      def get(key, context = self.context, &block)
+      def get(key, &block)
         normalize_object(options[key]) || (block.call if block_given?)
       end
 
-      private
+      def with_context(context)
+        dup.tap { |options| options.instance_variable_set(:@context, context) }
+      end
+
+      def context
+        @context || raise(ArgumentError, 'context not set')
+      end
+
+      protected
 
       def normalize_object(object)
         case object
@@ -25,6 +32,8 @@ module HipaaCrypt
           object
         end
       end
+
+      private
 
       def normalize_symbol(symbol)
         context.send symbol

@@ -4,19 +4,12 @@ describe HipaaCrypt::Encryptor::ContextualOptions do
 
   let(:options_hash) { { foo: 'bar' } }
   let(:context) { Object.new }
-  subject(:options) { described_class.new(options_hash, context) }
+  subject(:options) { described_class.new(options_hash).with_context(context) }
 
   describe '#initialize' do
-    it 'should assign a context' do
-      instance = described_class.allocate
-      expect { instance.send(:initialize, options_hash, context) }
-      .to change { instance.context }
-          .to context
-    end
-
     it 'should assign a options' do
       instance = described_class.allocate
-      expect { instance.send(:initialize, options_hash, context) }
+      expect { instance.send(:initialize, options_hash) }
       .to change { instance.options }
           .to options_hash
     end
@@ -48,6 +41,33 @@ describe HipaaCrypt::Encryptor::ContextualOptions do
           options.get(:foo).should be_nil
         end
       end
+    end
+  end
+
+  describe '#context' do
+    context 'when a context is present' do
+      it 'should return it' do
+        context_double = double
+        options.instance_variable_set(:@context, context_double)
+        options.context.should eq context_double
+      end
+    end
+
+    context 'when a context is not present' do
+      it 'should raise an error' do
+        options.instance_variable_set(:@context, nil)
+        expect { options.context }.to raise_error ArgumentError
+      end
+    end
+  end
+
+  describe '#with_context' do
+    it 'should duplicate the object and set a context on the new object' do
+      context_double = double
+      new_options = options.with_context(context_double)
+      new_options.object_id.should_not eq options.object_id
+      new_options.context.should_not eq options.context
+      new_options.context.should eq context_double
     end
   end
 
