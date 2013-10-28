@@ -23,7 +23,7 @@ module HipaaCrypt
       end
 
       def set_encrypted_attribute(attr, encryptor)
-        @encrypted_attributes ||= {}
+        @encrypted_attributes       ||= {}
         @encrypted_attributes[attr] = encryptor
       end
 
@@ -37,12 +37,22 @@ module HipaaCrypt
       private
 
       def define_encrypted_attr(attr, options)
-        encryptor          = options.delete(:encryptor) { Encryptor }
-        prefix             = options.delete(:prefix) { 'encrypted_' }
+        encryptor                  = options.delete(:encryptor) { Encryptor }
+        prefix                     = options.delete(:prefix) { 'encrypted_' }
         encrypted_attributes[attr] = encryptor.new(options)
 
         define_unencrypted_methods_for_attr attr
+        define_encrypted_methods_for_attr attr, prefix
 
+        attr
+      end
+
+      def define_unencrypted_methods_for_attr(attr)
+        attr_reader attr unless method_defined?("#{attr}")
+        attr_writer attr unless method_defined?("#{attr}=")
+      end
+
+      def define_encrypted_methods_for_attr(attr, prefix)
         alias_method "#{prefix}#{attr}", "#{attr}"
         alias_method "#{prefix}#{attr}=", "#{attr}="
 
@@ -53,12 +63,6 @@ module HipaaCrypt
         define_method("#{attr}=") do |value|
           send "#{prefix}#{attr}=", encryptor_for(attr).encrypt(value)
         end
-
-      end
-
-      def define_unencrypted_methods_for_attr(attr)
-        attr_reader attr unless method_defined?("#{attr}")
-        attr_writer attr unless method_defined?("#{attr}=")
       end
 
     end
