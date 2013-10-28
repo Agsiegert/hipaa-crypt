@@ -37,9 +37,9 @@ module HipaaCrypt
       private
 
       def define_encrypted_attr(attr, options)
-        encryptor                  = options.delete(:encryptor) { Encryptor }
-        prefix                     = options.delete(:prefix) { 'encrypted_' }
-        encrypted_attributes[attr] = encryptor.new(options)
+        encryptor = options.delete(:encryptor) { Encryptor }
+        prefix    = options.delete(:prefix) { 'encrypted_' }
+        set_encrypted_attribute attr, encryptor.new(options)
 
         define_unencrypted_methods_for_attr attr
         define_encrypted_methods_for_attr attr, prefix
