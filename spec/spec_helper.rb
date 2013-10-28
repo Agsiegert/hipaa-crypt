@@ -1,7 +1,23 @@
+require 'simplecov'
+require 'coveralls'
+
+require 'rspec/autorun'
+require 'bundler/setup'
+require 'pry'
+
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
+  SimpleCov::Formatter::HTMLFormatter,
+  Coveralls::SimpleCov::Formatter
+]
+SimpleCov.start
+
 require 'hipaa-crypt'
 
+Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
+
 RSpec.configure do |config|
-  config.treat_symbols_as_metadata_keys_with_true_values = true
+  config.filter_run focus: true
   config.run_all_when_everything_filtered = true
-  config.filter_run :focus
+  config.alias_example_to :fit, focus: true
+  config.alias_example_to :fits, focus: true
 end
