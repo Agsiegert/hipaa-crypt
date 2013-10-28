@@ -4,6 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'hipaa-crypt/version'
 
 Gem::Specification.new do |spec|
+
   spec.name          = "hipaa-crypt"
   spec.version       = HipaaCrypt::VERSION
   spec.authors       = ["Jason Waldrip"]
