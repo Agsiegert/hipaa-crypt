@@ -60,6 +60,32 @@ describe HipaaCrypt::Callbacks do
     end
   end
 
+  describe '#invoke_callback_on_context' do
+    context 'when the callback is a symbol' do
+      it 'should call #invoke_symbol_on_context' do
+        symbol = :foo
+        context = double
+        expect(callbacks).to receive(:invoke_symbol_on_context).with(symbol, context)
+        callbacks.send :invoke_callback_on_context, symbol, context
+      end
+    end
+
+    context 'when the callback is a proc' do
+      it 'should call #invoke_proc_on_context' do
+        proc = proc {}
+        context = double
+        expect(callbacks).to receive(:invoke_proc_on_context).with(proc, context)
+        callbacks.send :invoke_callback_on_context, proc, context
+      end
+    end
+
+    context 'when the callback is none of the above' do
+      it 'should raise an error' do
+        expect { callbacks.send(:invoke_callback_on_context, Object.new, double) }.to raise_error ArgumentError
+      end
+    end
+  end
+
   describe '#invoke_symbol_on_context' do
     it 'should send a method to the context' do
       context = double
