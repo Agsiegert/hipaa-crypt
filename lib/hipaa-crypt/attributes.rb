@@ -42,7 +42,7 @@ module HipaaCrypt
         set_encrypted_attribute attr, encryptor.new(options)
 
         define_unencrypted_methods_for_attr attr
-        alias_unencrypted_methods_for_attr attr
+        prefix_unencrypted_methods_for_attr prefix, attr
 
         if options[:iv].is_a?(Symbol) && setter_defined?(options[:iv])
           define_encrypted_methods_for_attr_with_iv attr, prefix, options[:iv]
@@ -53,21 +53,18 @@ module HipaaCrypt
         attr
       end
 
-      def alias_unencrypted_methods_for_attr(attr)
-        alias_method "#{prefix}#{attr}", "#{attr}"
-        alias_method "#{prefix}#{attr}=", "#{attr}="
-      end
-
       def define_encrypted_methods_for_attr(attr, prefix)
-        define_method("#{attr}") do
-          args = send("#{prefix}#{attr}").to_s.split("\n", 2).reverse
-          encryptor_for(attr).decrypt *args
-        end
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{attr}
+            args = #{prefix}#{attr}.to_s.split("\n", 2).reverse
+            encryptor_for(#{attr.inspect}).decrypt *args
+          end
 
-        define_method("#{attr}=") do |value|
-          string = [encryptor_for(attr).encrypt(value)].flatten.reverse.join("\n")
-          send "#{prefix}#{attr}=", string
-        end
+          def #{attr}=(value)
+            string = [encryptor_for(#{attr.inspect}).encrypt(value)].flatten.reverse.join("\n")
+            self.#{prefix}#{attr}= string
+          end
+        RUBY
       end
 
       def define_encrypted_methods_for_attr_with_iv(attr, prefix, iv_method)
@@ -91,16 +88,21 @@ module HipaaCrypt
         attr_writer attr unless method_defined?("#{attr}=")
       end
 
+      def getter_for(method)
+        method
+      end
+
+      def prefix_unencrypted_methods_for_attr(prefix, attr)
+        alias_method "#{prefix}#{attr}", "#{attr}"
+        alias_method "#{prefix}#{attr}=", "#{attr}="
+      end
+
       def setter_defined?(method)
         method_defined?("#{method}=".to_sym)
       end
 
       def setter_for(method)
         "#{method}=".to_sym
-      end
-
-      def getter_for(method)
-        method
       end
 
     end

@@ -51,16 +51,6 @@ describe HipaaCrypt::Attributes do
       model.send(:attr_accessor, :foo)
     end
 
-    it 'should alias the getters and setters with a prefix' do
-      getter_method = model.instance_method(:foo)
-      setter_method = model.instance_method(:foo=)
-
-      model.send(:define_encrypted_methods_for_attr, :foo, :some_prefix_)
-
-      model.instance_method(:some_prefix_foo).should eq getter_method
-      model.instance_method(:some_prefix_foo=).should eq setter_method
-    end
-
     it 'should define an encrypting setter' do
       expect(model).to receive(:method_added).with(:foo=)
       model.send(:define_encrypted_methods_for_attr, :foo, :some_prefix_)
@@ -78,6 +68,8 @@ describe HipaaCrypt::Attributes do
 
       before(:each) do
         allow(instance).to receive(:encryptor_for).and_return(encryptor)
+        model.send(:define_unencrypted_methods_for_attr, :foo)
+        model.send(:prefix_unencrypted_methods_for_attr, :encrypted_, :foo)
         model.send(:define_encrypted_methods_for_attr, :foo, :encrypted_)
       end
 
@@ -151,6 +143,20 @@ describe HipaaCrypt::Attributes do
       end
     end
 
+  end
+
+  describe '.prefix_unencrypted_methods_for_attr' do
+    before(:each){ model.send(:define_unencrypted_methods_for_attr, :foo) }
+    it 'should alias the getters and setters with a prefix' do
+
+      getter_method = model.instance_method(:foo)
+      setter_method = model.instance_method(:foo=)
+
+      model.send(:prefix_unencrypted_methods_for_attr, :some_prefix_, :foo)
+
+      model.instance_method(:some_prefix_foo).should eq getter_method
+      model.instance_method(:some_prefix_foo=).should eq setter_method
+    end
   end
 
 end
