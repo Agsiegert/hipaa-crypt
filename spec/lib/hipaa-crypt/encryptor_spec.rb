@@ -47,8 +47,8 @@ describe HipaaCrypt::Encryptor do
       encryptor.decrypt(encrypted_value, iv).should eq value
     end
 
-    xit 'should call dump and encode with an encrypted string' do
-      expect(encryptor).to receive(:decode_and_load)
+    it 'should call decode with an encrypted string' do
+      expect(encryptor).to receive(:decode)
                            .with(encrypted_value)
                            .and_call_original
       encryptor.decrypt(encrypted_value, iv)
@@ -170,6 +170,15 @@ describe HipaaCrypt::Encryptor do
       it 'should raise an ArgumentError' do
         expect { encryptor.key }.to raise_error(ArgumentError)
       end
+    end
+  end
+
+  describe('#with_context') do
+    it 'should return a new encryptor with options in context' do
+      context = double
+      contextual_encryptor = encryptor.with_context(context)
+      contextual_encryptor.should_not eq encryptor
+      contextual_encryptor.options.context.should eq context
     end
   end
 
