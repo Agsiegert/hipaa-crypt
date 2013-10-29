@@ -78,7 +78,7 @@ module HipaaCrypt
             encryptor_for(#{attr.inspect}).decrypt string, iv
           end
 
-          def #{attr}=
+          def #{attr}=(value)
             string, iv = encryptor_for(#{attr.inspect}).encrypt(value)
             self.#{setter_for(iv_method)} iv
             self.#{prefix}#{attr}= string
