@@ -1,4 +1,6 @@
-# HipaaCrypt Gem [![Code Climate](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/badges/3cb20b99b4a336e33721/gpa.png)](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/feed)
+# HipaaCrypt Gem
+[![Code Climate](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/badges/3cb20b99b4a336e33721/gpa.png)](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/feed)
+[![Build Status](https://magnum.travis-ci.com/itriage-core/hipaa-crypt.png?token=Rd94jzYngRqvof5Mizxx&branch=master)](https://magnum.travis-ci.com/itriage-core/hipaa-crypt)
 
 **State:** Prototype *`-(in progress to)>`* Version 1.0.0-stable
 
