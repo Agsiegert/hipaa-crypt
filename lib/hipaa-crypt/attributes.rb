@@ -42,15 +42,23 @@ module HipaaCrypt
         set_encrypted_attribute attr, encryptor.new(options)
 
         define_unencrypted_methods_for_attr attr
-        define_encrypted_methods_for_attr attr, prefix
+        alias_unencrypted_methods_for_attr attr
+
+        if options[:iv].is_a?(Symbol) && setter_defined?(options[:iv])
+          define_encrypted_methods_for_attr_with_iv attr, prefix, options[:iv]
+        else
+          define_encrypted_methods_for_attr attr, prefix
+        end
 
         attr
       end
 
-      def define_encrypted_methods_for_attr(attr, prefix)
+      def alias_unencrypted_methods_for_attr(attr)
         alias_method "#{prefix}#{attr}", "#{attr}"
         alias_method "#{prefix}#{attr}=", "#{attr}="
+      end
 
+      def define_encrypted_methods_for_attr(attr, prefix)
         define_method("#{attr}") do
           args = send("#{prefix}#{attr}").to_s.split("\n", 2).reverse
           encryptor_for(attr).decrypt *args
@@ -62,9 +70,35 @@ module HipaaCrypt
         end
       end
 
+      def define_encrypted_methods_for_attr_with_iv(attr, prefix, iv_method)
+        define_method("#{attr}") do
+          string = send("#{prefix}#{attr}")
+          iv = send getter_for(iv_method)
+          encryptor_for(attr).decrypt string, iv
+        end
+
+        define_method("#{attr}=") do |value|
+          string, iv = encryptor_for(attr).encrypt(value)
+          send setter_for(iv_method), iv
+          send "#{prefix}#{attr}=", string
+        end
+      end
+
       def define_unencrypted_methods_for_attr(attr)
         attr_reader attr unless method_defined?("#{attr}")
         attr_writer attr unless method_defined?("#{attr}=")
+      end
+
+      def setter_defined?(method)
+        method_defined?("#{method}=".to_sym)
+      end
+
+      def setter_for(method)
+        "#{method}=".to_sym
+      end
+
+      def getter_for(method)
+        method
       end
 
     end
