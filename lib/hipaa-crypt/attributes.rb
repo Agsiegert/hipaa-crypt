@@ -47,22 +47,24 @@ module HipaaCrypt
         attr
       end
 
-      def define_unencrypted_methods_for_attr(attr)
-        attr_reader attr unless method_defined?("#{attr}")
-        attr_writer attr unless method_defined?("#{attr}=")
-      end
-
       def define_encrypted_methods_for_attr(attr, prefix)
         alias_method "#{prefix}#{attr}", "#{attr}"
         alias_method "#{prefix}#{attr}=", "#{attr}="
 
         define_method("#{attr}") do
-          encryptor_for(attr).decrypt send("#{prefix}#{attr}")
+          args = send("#{prefix}#{attr}").to_s.split("\n", 2).reverse
+          encryptor_for(attr).decrypt *args
         end
 
         define_method("#{attr}=") do |value|
-          send "#{prefix}#{attr}=", encryptor_for(attr).encrypt(value)
+          string = [encryptor_for(attr).encrypt(value)].flatten.reverse.join("\n")
+          send "#{prefix}#{attr}=", string
         end
+      end
+
+      def define_unencrypted_methods_for_attr(attr)
+        attr_reader attr unless method_defined?("#{attr}")
+        attr_writer attr unless method_defined?("#{attr}=")
       end
 
     end
