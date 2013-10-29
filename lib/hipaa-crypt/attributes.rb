@@ -71,17 +71,19 @@ module HipaaCrypt
       end
 
       def define_encrypted_methods_for_attr_with_iv(attr, prefix, iv_method)
-        define_method("#{attr}") do
-          string = send("#{prefix}#{attr}")
-          iv = send getter_for(iv_method)
-          encryptor_for(attr).decrypt string, iv
-        end
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{attr}
+            string = #{prefix}#{attr}
+            iv = #{getter_for(iv_method)}
+            encryptor_for(#{attr.inspect}).decrypt string, iv
+          end
 
-        define_method("#{attr}=") do |value|
-          string, iv = encryptor_for(attr).encrypt(value)
-          send setter_for(iv_method), iv
-          send "#{prefix}#{attr}=", string
-        end
+          def #{attr}=
+            string, iv = encryptor_for(#{attr.inspect}).encrypt(value)
+            self.#{setter_for(iv_method)} iv
+            self.#{prefix}#{attr}= string
+          end
+        RUBY
       end
 
       def define_unencrypted_methods_for_attr(attr)
