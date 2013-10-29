@@ -13,10 +13,7 @@ module HipaaCrypt
     end
 
     def decrypt string, iv = options.get(:iv)
-      cipher.reset
-      cipher.decrypt
-      cipher.key = key
-      cipher.iv  = iv
+      setup_cipher __method__, iv
       value      = cipher.update(decode string) + cipher.final
       Callbacks.new(options.raw_value :after_load).run deserialize value
     end
@@ -24,10 +21,7 @@ module HipaaCrypt
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
       iv ||= generate_iv
       value = serialize Callbacks.new(options.raw_value :before_encrypt).run value
-      cipher.reset
-      cipher.encrypt
-      cipher.key = key
-      cipher.iv  = iv
+      setup_cipher __method__, iv
       value = encode cipher.update(value) + cipher.final
       [value, iv]
     end
@@ -48,28 +42,35 @@ module HipaaCrypt
 
     private
 
-    def encode(value)
-      [value].pack('m')
-    end
-
-    def decode(value)
-      value.unpack('m').first
-    end
-
-    def serialize(value)
-      Marshal.dump(value)
-    end
-
-    def deserialize(value)
-      Marshal.load(value)
+    def setup_cipher(mode, iv)
+      cipher.reset
+      cipher.send(mode)
+      cipher.key = key
+      cipher.iv  = iv
     end
 
     def cipher_string_from_hash(hash)
       hash.values_at(:name, :key_length, :mode).join('-').downcase
     end
 
+    def decode(value)
+      value.unpack('m').first
+    end
+
+    def deserialize(value)
+      Marshal.load(value)
+    end
+
+    def encode(value)
+      [value].pack('m')
+    end
+
     def generate_iv
       SecureRandom.base64(44)
+    end
+
+    def serialize(value)
+      Marshal.dump(value)
     end
 
   end
