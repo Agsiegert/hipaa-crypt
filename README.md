@@ -81,9 +81,9 @@ with the new.
 **example:**
 
 ```ruby
-$> Poro.re_encrypt :foo, :bar,
-    key: "my old key",
-    cipher: { name: :AES, key_length: 256, mode: :CBC }
+irb> Poro.re_encrypt :foo, :bar,
+       key: "my old key",
+       cipher: { name: :AES, key_length: 256, mode: :CBC }
 ```
 
 -
