@@ -94,4 +94,3 @@ irb> Poro.re_encrypt :foo, :bar,
 
 ***fin***
   
-  
