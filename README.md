@@ -1,33 +1,46 @@
-# HipaaCrypt Gem
+# HipaaCrypt Gem [![Code Climate](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/badges/3cb20b99b4a336e33721/gpa.png)](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/feed)
 
 ## Goal
 
-Provide a universal wrapper for encrypting data in plain old ruby objects.
+Provide an encryption library with zero external dependencies. It should be built in pure Ruby and use the
+[OpenSSL::Cipher](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/openssl/rdoc/OpenSSL/Cipher.html) library included
+in Ruby's Standard Library.
 
-# Steps
-The steps to encryption will be as follows, an encrypted object will always be marshalized.
+### AttrEncrypted (the old method)
+[AttrEncrypted](https://github.com/attr-encrypted/attr_encrypted) was found to have a code climate score of
+[![Code Climate](http://allthebadges.io/attr-encrypted/attr_encrypted/code_climate.png)](http://allthebadges.io/attr-encrypted/attr_encrypted/code_climate)
+and proved to be a poor implementation of encryption and and overly complex code base. @gerred found that it used all 0s for an initialization
+vector. While it seems that future versions have seemed to address this issue, the overal complexity of the
+gem has not improved. After discussion with architecture and core product we have devised a plan to wholly
+own the method of encryption.
 
-## Encrypt
+## Functionality
 
-1. Initializer encryptor `HippaCrypt::Encryptor.new(options).encrypt(value)`.
-2. Encryptor generates or uses a provided iv, encrypts the value with the specified key and returns a Encoded and
-  Marshaled `EncryptedObject` containing an `@iv` and `@encrypted_value`.
-3. The writer takes the returned string and writes it to 
+### Encryption [Done]
 
-# Examples
+Encryption should be handled by a wrapper class containing an easy to use DSL over the built in OpenSSL library.
+The class dubbed `HipaaCrypt::Encryptor` should be initialized with options used to handle the encryption. At the
+very least the requirment is to implement options with a key and cipher (defaulting to aes 256). Further options may
+be implemented.
 
-## Encrypted Attributes Mixin
+The Encryptor itself must adhere to the following standards:
 
-Encrypted attributes will use alias methods to handle the encryption assignment, there is no need to change
-database tables to support custom attributes for encryption, this is accomplished in pure ruby.
+* it must be initialized with an options hash containing a key.
+* it must respond to encrypt, an implementation resulting in the return of an encrypted string.
+* it must respond to decrypt, an implementation succesfully able to decrypt a string returned by encrypt.
+* encrypt_return_value **must eq** decrypt_input_value
+* decrypt_return_value **must eq** encrypt_input_value
 
-ex: by setting :foo to encrypt, then :foo will become :encrypted_foo, and :foo will will use the encryptor.
+### Plain Old Ruby Object (PORO) Attribute Mixins [In Progress]
 
+A module that when included within a ruby object provides methods to assign attributes for encryption.
+
+A sample implementation may look like this:
 ```ruby
 class Poro
   include HippaCrypt::Attributes
 
-  encrypt :foo,
+  encrypt :foo, :bar,
     key: ENV['ENCRYPTION_KEY'], # required
     cipher: { name: :AES, key_length: 256, mode: :CBC }, # optional
     iv: nil, # optional
@@ -39,8 +52,42 @@ class Poro
 end
 ```
 
+## ORM Specific Auto Mixins [To Do]
+
+Modules that upon include of the standard mixin will detect the ancestors of the base class and be automatically included.
+
+### ActiveRecord
+
+The active record mixin should provide the following features.
+
+* Rails 3 dynamic finders
+  * `find_by_attr_name('foo')`
+  * `find_or_initialize_by_attr_name('foo')`
+  * `find_or_create_by_attr_name('foo')`
+* Rails 4 find_by methods
+  * `find_by(attr_name: 'foo')`
+  * `find_or_initialize_by(attr_name: 'foo')`
+  * `find_or_create_by(attr_name: 'foo')`
+* AREL query support
+  * `where(attr_name: 'foo')`
+  * etc...
+
+
+## Re-Encryption Support [To Do]
+
+The ability to pass previous options to a `re_encrypt` method, therefor decrypting with the old options and encrypting
+with the new.
+
+**example:**
+
 ```ruby
-$> Poro.re_encrypt(old_options)
+$> Poro.re_encrypt :foo, :bar,
+    key: "my old key",
+    cipher: { name: :AES, key_length: 256, mode: :CBC }
 ```
+
+-
+
+***fin***
   
   
