@@ -1,4 +1,3 @@
-require 'base64'
 require 'openssl/cipher'
 
 module HipaaCrypt
@@ -13,24 +12,24 @@ module HipaaCrypt
       @options    = ContextualOptions.new(options)
     end
 
-    def decrypt(string)
-      encrypted_object = decode_and_load string
+    def decrypt string, iv = options.get(:iv)
       cipher.reset
       cipher.decrypt
       cipher.key = key
-      cipher.iv  = encrypted_object.iv
-      value      = cipher.update(encrypted_object.value) + cipher.final
-      run_after_hook(value)
+      cipher.iv  = iv
+      value      = cipher.update(decode string) + cipher.final
+      Callbacks.new(options.raw_value :after_load).run deserialize value
     end
 
-    def encrypt(value)
-      value = run_before_hook(value)
+    def encrypt value, iv = options.get(:iv) # Should return [string, iv]
+      iv ||= generate_iv
+      value = serialize Callbacks.new(options.raw_value :before_encrypt).run value
       cipher.reset
       cipher.encrypt
       cipher.key = key
-      iv = generate_iv
       cipher.iv  = iv
-      dump_and_encode cipher.update(value) + cipher.final, iv
+      value = encode cipher.update(value) + cipher.final
+      [value, iv]
     end
 
     def key
@@ -49,28 +48,28 @@ module HipaaCrypt
 
     private
 
+    def encode(value)
+      [value].pack('m')
+    end
+
+    def decode(value)
+      value.unpack('m').first
+    end
+
+    def serialize(value)
+      Marshal.dump(value)
+    end
+
+    def deserialize(value)
+      Marshal.load(value)
+    end
+
     def cipher_string_from_hash(hash)
       hash.values_at(:name, :key_length, :mode).join('-').downcase
     end
 
-    def decode_and_load(string)
-      Marshal.load Base64.decode64 string
-    end
-
-    def dump_and_encode(string, iv)
-      Base64.encode64 Marshal.dump EncryptedObject.new(string, iv)
-    end
-
     def generate_iv
-      options.get(:iv){ OpenSSL::Random.random_bytes(cipher.iv_len) }
-    end
-
-    def run_after_hook(value)
-      options.with_context(value).get(:after_load){ value }
-    end
-
-    def run_before_hook(value)
-      options.with_context(value).get(:before_encrypt){ value }
+      SecureRandom.base64(44)
     end
 
   end

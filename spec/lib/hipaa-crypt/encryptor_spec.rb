@@ -39,31 +39,33 @@ describe HipaaCrypt::Encryptor do
 
   describe '#decrypt' do
     let(:value) { %w{foo bar baz raz}.sample }
-    let(:encrypted_value) { described_class.new(options).encrypt(value) }
+    let(:encrypt_return) { described_class.new(options).encrypt(value) }
+    let(:encrypted_value) { encrypt_return.first }
+    let(:iv) { encrypt_return.last }
 
     it 'should successfully decrypt a value' do
-      encryptor.decrypt(encrypted_value).should eq value
+      encryptor.decrypt(encrypted_value, iv).should eq value
     end
 
-    it 'should call dump and encode with an encrypted string' do
+    xit 'should call dump and encode with an encrypted string' do
       expect(encryptor).to receive(:decode_and_load)
                            .with(encrypted_value)
                            .and_call_original
-      encryptor.decrypt(encrypted_value)
+      encryptor.decrypt(encrypted_value, iv)
     end
 
     it 'should reset the cipher' do
       expect(encryptor.cipher)
       .to receive(:reset)
           .and_call_original
-      encryptor.decrypt(encrypted_value)
+      encryptor.decrypt(encrypted_value, iv)
     end
 
     it 'should tell the cipher its encrypting' do
       expect(encryptor.cipher)
       .to receive(:decrypt)
           .and_call_original
-      encryptor.decrypt(encrypted_value)
+      encryptor.decrypt(encrypted_value, iv)
     end
 
     it 'should set the cipher key' do
@@ -71,36 +73,48 @@ describe HipaaCrypt::Encryptor do
       .to receive(:key=)
           .with(encryptor.key)
           .and_call_original
-      encryptor.decrypt(encrypted_value)
+      encryptor.decrypt(encrypted_value, iv)
     end
 
     it 'should set the cipher iv' do
-      iv = encryptor.send(:decode_and_load, encrypted_value).iv
       expect(encryptor.cipher)
       .to receive(:iv=)
           .with(iv)
           .and_call_original
-      encryptor.decrypt(encrypted_value)
+      encryptor.decrypt(encrypted_value, iv)
     end
 
-    it 'should call #run_after_hooks with the value' do
-      expect(encryptor)
-      .to receive(:run_after_hook)
-          .with(value)
-          .and_return(value)
-      encryptor.decrypt encrypted_value
+    context 'with callbacks' do
+      let(:options) { { key: SecureRandom.hex, after_load: :to_s } }
+
+      it 'should call run Callbacks using :after_load with the value' do
+        encrypted_value
+        callbacks_double = double.tap { |cb| expect(cb).to receive(:run).with(value) }
+        expect(HipaaCrypt::Callbacks)
+        .to receive(:new)
+            .with(:to_s)
+            .and_return(callbacks_double)
+        encryptor.decrypt encrypted_value, iv
+      end
+
     end
   end
 
   describe '#encrypt' do
     let(:value) { %w{foo bar baz raz}.sample }
 
-    it 'should call #run_before_hooks with the value' do
-      expect(encryptor)
-      .to receive(:run_before_hook)
-          .with(value)
-          .and_return(value)
-      encryptor.encrypt value
+    context 'with callbacks' do
+      let(:options) { { key: SecureRandom.hex, before_encrypt: :to_s } }
+
+      it 'should call run Callbacks using :after_load with the value' do
+        callbacks_double = double.tap { |cb| expect(cb).to receive(:run).with(value) }
+        expect(HipaaCrypt::Callbacks)
+        .to receive(:new)
+            .with(:to_s)
+            .and_return(callbacks_double)
+        encryptor.encrypt value
+      end
+
     end
 
     it 'should reset the cipher' do
@@ -137,11 +151,6 @@ describe HipaaCrypt::Encryptor do
       encryptor.encrypt(value)
     end
 
-    it 'should call dump and encode with an encrypted value' do
-      expect(encryptor).to receive(:dump_and_encode)
-      encryptor.encrypt('foo')
-    end
-
   end
 
   describe '#key' do
@@ -157,7 +166,7 @@ describe HipaaCrypt::Encryptor do
     end
 
     context 'when the options does not have a key' do
-      let(:options){ {} }
+      let(:options) { {} }
       it 'should raise an ArgumentError' do
         expect { encryptor.key }.to raise_error(ArgumentError)
       end
@@ -192,76 +201,9 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
-  describe '#decode_and_load' do
-    it 'should be able to decode a base64 marshaled string' do
-      value = Base64.encode64 Marshal.dump 'foo'
-      expect { encryptor.send(:decode_and_load, value) }.to_not raise_error
-    end
-
-    it 'should be able to load a value from #dump_and_encode' do
-      expect { encryptor.send :decode_and_load,
-                              encryptor.send(:dump_and_encode, "foo", "iv")
-      }.to_not raise_error
-    end
-  end
-
-  describe '#dump_and_encode' do
-    it 'should be a Base64 encoded marshaled string' do
-      value = encryptor.send(:dump_and_encode, "foo", "iv")
-      expect { Marshal.load Base64.decode64 value }.to_not raise_error
-    end
-
-    it 'should be marshaling an EncryptedObject' do
-      expect(Marshal)
-      .to receive(:dump)
-          .with(an_instance_of HipaaCrypt::EncryptedObject)
-          .and_call_original
-      value = encryptor.send(:dump_and_encode, "foo", "iv")
-    end
-  end
-
   describe '#generate_iv' do
-    context 'given options contains an iv' do
-      let(:options) { { key: SecureRandom.hex, iv: SecureRandom.hex } }
-      it 'should use the iv provided in the options' do
-        encryptor.send(:generate_iv).should eq options[:iv]
-      end
-    end
-
-    context 'given options do not contain an iv' do
-      it 'should be a random value' do
-        encryptor.send(:generate_iv).should_not eq encryptor.send(:generate_iv)
-      end
-    end
-  end
-
-  describe '#run_after_hook' do
-    context 'when a hook is provided' do
-      let(:options) { { key: SecureRandom.hex, iv: SecureRandom.hex, after_load: :upcase } }
-      it 'should run the hook on the value' do
-        encryptor.send(:run_after_hook, 'foo').should eq 'FOO'
-      end
-    end
-
-    context 'when a hook is not provided' do
-      it 'should return the value' do
-        encryptor.send(:run_after_hook, 'foo').should eq 'foo'
-      end
-    end
-  end
-
-  describe '#run_before_hook' do
-    context 'when a hook is provided' do
-      let(:options) { { key: SecureRandom.hex, iv: SecureRandom.hex, before_encrypt: :upcase } }
-      it 'should run the hook on the value' do
-        encryptor.send(:run_before_hook, 'foo').should eq 'FOO'
-      end
-    end
-
-    context 'when a hook is not provided' do
-      it 'should return the value' do
-        encryptor.send(:run_before_hook, 'foo').should eq 'foo'
-      end
+    it 'should be a random value' do
+      encryptor.send(:generate_iv).should_not eq encryptor.send(:generate_iv)
     end
   end
 

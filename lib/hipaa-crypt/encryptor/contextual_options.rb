@@ -8,6 +8,10 @@ module HipaaCrypt
         @options = options
       end
 
+      def context
+        @context || raise(ArgumentError, 'context not set')
+      end
+
       def get(key, &block)
         normalize_object(options[key]) || (block.call if block_given?)
       end
@@ -16,8 +20,8 @@ module HipaaCrypt
         dup.tap { |options| options.instance_variable_set(:@context, context) }
       end
 
-      def context
-        @context || raise(ArgumentError, 'context not set')
+      def raw_value(key)
+        options[key]
       end
 
       protected
