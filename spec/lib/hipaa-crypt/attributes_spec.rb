@@ -94,9 +94,23 @@ describe HipaaCrypt::Attributes do
       end
 
       describe 'encrypted attr setter' do
-
+        it 'should use the attrs encryptor' do
+          expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
+          instance.foo = 'value'
+        end
       end
 
+      it 'should use the attrs encryptor to decrypt a value' do
+        value = "some value"
+        allow(instance).to receive(:encrypted_foo).and_return(value)
+        expect(encryptor).to receive(:encrypt).with(value)
+        instance.foo = value
+      end
+
+      it 'should be able to encrypt a value' do
+        allow(instance).to receive(:encryptor_for).and_return(HipaaCrypt::Encryptor.new key: SecureRandom.hex)
+        expect { instance.foo = "bar" }.to_not raise_error
+      end
     end
 
   end
