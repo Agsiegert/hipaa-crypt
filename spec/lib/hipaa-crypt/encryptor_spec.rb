@@ -37,6 +37,10 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
+  describe '#context' do
+    pending
+  end
+
   describe '#decrypt' do
     let(:value) { %w{foo bar baz raz}.sample }
     let(:encrypt_return) { described_class.new(options).encrypt(value) }
