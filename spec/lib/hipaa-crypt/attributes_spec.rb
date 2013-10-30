@@ -6,49 +6,49 @@ describe HipaaCrypt::Attributes do
     Class.new { include HipaaCrypt::Attributes }
   end
 
-  context 'implementations' do
-
-    let(:instance){ model.new }
-
-    shared_examples 'a functioning encryptor' do
-      it 'should set an encrypted_value' do
-        expect { instance.foo = 'bar' }.to change { instance.encrypted_foo }
-      end
-
-      it 'should encrypt successfully' do
-        instance.foo = 'bar'
-      end
-
-      it 'should decrypt successfully' do
-        instance.foo = 'bar'
-        instance.foo.should eq 'bar'
-      end
-    end
-
-    context 'with a static iv' do
-      before (:each)do
-        model.encrypt :foo, key: SecureRandom.hex, iv: '1234567890123456'
-      end
-      it_should_behave_like 'a functioning encryptor'
-    end
-
-    context 'with an iv setter' do
-      before (:each)do
-        model.send(:attr_accessor, :foo_iv)
-        model.encrypt :foo, key: SecureRandom.hex, iv: :foo_iv
-      end
-      it_should_behave_like 'a functioning encryptor'
-    end
-
-    context 'with a generated iv' do
-      before (:each)do
-        model.send(:attr_accessor, :foo_iv)
-        model.encrypt :foo, key: SecureRandom.hex
-      end
-      it_should_behave_like 'a functioning encryptor'
-    end
-
-  end
+  #context 'implementations' do
+  #
+  #  let(:instance){ model.new }
+  #
+  #  shared_examples 'a functioning encryptor' do
+  #    it 'should set an encrypted_value' do
+  #      expect { instance.foo = 'bar' }.to change { instance.encrypted_foo }
+  #    end
+  #
+  #    it 'should encrypt successfully' do
+  #      instance.foo = 'bar'
+  #    end
+  #
+  #    it 'should decrypt successfully' do
+  #      instance.foo = 'bar'
+  #      instance.foo.should eq 'bar'
+  #    end
+  #  end
+  #
+  #  context 'with a static iv' do
+  #    before (:each)do
+  #      model.encrypt :foo, key: SecureRandom.hex, iv: '1234567890123456'
+  #    end
+  #    it_should_behave_like 'a functioning encryptor'
+  #  end
+  #
+  #  context 'with an iv setter' do
+  #    before (:each)do
+  #      model.send(:attr_accessor, :foo_iv)
+  #      model.encrypt :foo, key: SecureRandom.hex, iv: :foo_iv
+  #    end
+  #    it_should_behave_like 'a functioning encryptor'
+  #  end
+  #
+  #  context 'with a generated iv' do
+  #    before (:each)do
+  #      model.send(:attr_accessor, :foo_iv)
+  #      model.encrypt :foo, key: SecureRandom.hex
+  #    end
+  #    it_should_behave_like 'a functioning encryptor'
+  #  end
+  #
+  #end
 
   describe HipaaCrypt::Attributes::ClassMethods do
 
@@ -88,6 +88,20 @@ describe HipaaCrypt::Attributes do
           expect(model.encrypted_attributes).to include attr_a: "some super value",
                                                         attr_b: "some value"
         end
+      end
+    end
+
+    describe '.define_encrypted_attr' do
+      it 'should call set_encrypted_attribute with the attr and an encryptor' do
+        expect(model).to receive(:set_encrypted_attribute).with :foo, an_instance_of(HipaaCrypt::Encryptor) do |attr, encryptor|
+          expect(encryptor.options.options).to eq hello: :world
+        end
+        model.send(:define_encrypted_attr, :foo, hello: :world)
+      end
+
+      it 'should call define' do
+        expect(model).to receive(:define_unencrypted_methods_for_attr).with(:foo).and_call_original
+        model.send(:define_encrypted_attr, :foo, {})
       end
     end
 
@@ -357,23 +371,62 @@ describe HipaaCrypt::Attributes do
 
     end
 
-  end
+    describe '.prefix_unencrypted_methods_for_attr' do
+      before(:each) { model.send(:define_unencrypted_methods_for_attr, :foo) }
+      it 'should alias the getters and setters with a prefix' do
 
-  describe '.prefix_unencrypted_methods_for_attr' do
-    before(:each) { model.send(:define_unencrypted_methods_for_attr, :foo) }
-    it 'should alias the getters and setters with a prefix' do
+        getter_method = model.instance_method(:foo)
+        setter_method = model.instance_method(:foo=)
 
-      getter_method = model.instance_method(:foo)
-      setter_method = model.instance_method(:foo=)
+        model.send(:prefix_unencrypted_methods_for_attr, :some_prefix_, :foo)
 
-      model.send(:prefix_unencrypted_methods_for_attr, :some_prefix_, :foo)
-
-      model.instance_method(:some_prefix_foo).should eq getter_method
-      model.instance_method(:some_prefix_foo=).should eq setter_method
+        model.instance_method(:some_prefix_foo).should eq getter_method
+        model.instance_method(:some_prefix_foo=).should eq setter_method
+      end
     end
+
+    describe '.setter_defined?' do
+      context 'when a setter exists' do
+        before(:each){ model.send :attr_accessor, :foo }
+        it 'should be true' do
+          expect(model.send(:setter_defined?, :foo)).to be_true
+        end
+      end
+
+      context 'when a setter does not exist' do
+        it 'should be true' do
+          expect(model.send(:setter_defined?, :foo)).to be_false
+        end
+      end
+    end
+
+    describe '.setter_for' do
+      it 'should append an equals to the attr' do
+        expect(model.send(:setter_for, :foo)).to eq :foo=
+      end
+    end
+
   end
 
-# Instance Methods
+  context 'instance methods' do
 
+    let(:instance) { model.new }
+
+    describe '#encryptor_for' do
+      it 'should return an encryptor for a given attribute' do
+        encryptor = HipaaCrypt::Encryptor.new
+        allow(encryptor).to receive(:with_context).and_return(encryptor)
+        model.set_encrypted_attribute(:foo, encryptor)
+        expect(instance.send(:encryptor_for, :foo)).to eq encryptor
+      end
+
+      it 'the encryptor should have a context of the instance' do
+        encryptor = HipaaCrypt::Encryptor.new
+        model.set_encrypted_attribute(:foo, encryptor)
+        expect(instance.send(:encryptor_for, :foo).context).to eq instance
+      end
+    end
+
+  end
 
 end

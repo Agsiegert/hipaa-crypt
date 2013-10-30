@@ -91,10 +91,6 @@ module HipaaCrypt
         attr_writer attr unless method_defined?("#{attr}=")
       end
 
-      def getter_for(method)
-        method
-      end
-
       def prefix_unencrypted_methods_for_attr(prefix, attr)
         alias_method "#{prefix}#{attr}", "#{attr}" unless method_defined? "#{prefix}#{attr}"
         alias_method "#{prefix}#{attr}=", "#{attr}=" unless method_defined? "#{prefix}#{attr}="
