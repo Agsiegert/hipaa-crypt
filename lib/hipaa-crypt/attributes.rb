@@ -45,7 +45,9 @@ module HipaaCrypt
         prefix_unencrypted_methods_for_attr prefix, attr
 
         if options[:iv].is_a?(Symbol) && setter_defined?(options[:iv])
-          define_encrypted_methods_for_attr_with_iv attr, prefix, options[:iv]
+          define_encrypted_methods_for_attr_with_settable_iv attr, prefix, options[:iv]
+        elsif options.has_key? :iv
+          define_encrypted_methods_for_attr_with_iv attr, prefix
         else
           define_encrypted_methods_for_attr attr, prefix
         end
@@ -67,7 +69,21 @@ module HipaaCrypt
         RUBY
       end
 
-      def define_encrypted_methods_for_attr_with_iv(attr, prefix, iv_method)
+      def define_encrypted_methods_for_attr_with_iv(attr, prefix)
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def #{attr}
+            string = #{prefix}#{attr}
+            encryptor_for(#{attr.inspect}).decrypt string
+          end
+
+          def #{attr}=(value)
+            string, iv = encryptor_for(#{attr.inspect}).encrypt(value)
+            self.#{prefix}#{attr}= string
+          end
+        RUBY
+      end
+
+      def define_encrypted_methods_for_attr_with_settable_iv(attr, prefix, iv_method)
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{attr}
             string = #{prefix}#{attr}
@@ -93,8 +109,8 @@ module HipaaCrypt
       end
 
       def prefix_unencrypted_methods_for_attr(prefix, attr)
-        alias_method "#{prefix}#{attr}", "#{attr}"
-        alias_method "#{prefix}#{attr}=", "#{attr}="
+        alias_method "#{prefix}#{attr}", "#{attr}" unless method_defined? "#{prefix}#{attr}"
+        alias_method "#{prefix}#{attr}=", "#{attr}=" unless method_defined? "#{prefix}#{attr}="
       end
 
       def setter_defined?(method)
