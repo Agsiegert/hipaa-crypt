@@ -5,16 +5,6 @@ module HipaaCrypt
       base.extend(ClassMethods)
     end
 
-    private
-
-    def encryptor_for(attr)
-      encryptors[attr] ||= self.class.encrypted_attributes[attr].with_context(self)
-    end
-
-    def encryptors
-      @encryptors ||= {}
-    end
-
     module ClassMethods
 
       def encrypt(*attrs)
@@ -118,6 +108,18 @@ module HipaaCrypt
         "#{method}=".to_sym
       end
 
+    end
+
+    # Instance Methods
+
+    private
+
+    def encryptor_for(attr)
+      encryptors[attr] ||= self.class.encrypted_attributes[attr].with_context(self)
+    end
+
+    def encryptors
+      @encryptors ||= {}
     end
 
   end
