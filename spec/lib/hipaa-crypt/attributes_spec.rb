@@ -50,6 +50,25 @@ describe HipaaCrypt::Attributes do
 
   end
 
+  describe '.included' do
+    context 'when the base is a descendant of active record' do
+      let(:model) do
+        stub_const 'ActiveRecord::Base', Class.new
+        Class.new(ActiveRecord::Base) { include HipaaCrypt::Attributes }
+      end
+
+      it 'should include the active record extension' do
+        expect(model.ancestors).to include HipaaCrypt::Attributes::ActiveRecord
+      end
+    end
+
+    context 'when the base is a descendant of anything supported' do
+      it 'should not include the active record extension' do
+        expect(model.ancestors).to_not include HipaaCrypt::Attributes::ActiveRecord
+      end
+    end
+  end
+
   describe HipaaCrypt::Attributes::ClassMethods do
 
     describe '.encrypt' do

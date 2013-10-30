@@ -1,8 +1,11 @@
 module HipaaCrypt
   module Attributes
 
+    autoload :ActiveRecord, 'hipaa-crypt/attributes/active_record'
+
     def self.included(base)
       base.extend(ClassMethods)
+      base.send :include, ActiveRecord if defined?(::ActiveRecord::Base) && base.ancestors.include?(::ActiveRecord::Base)
     end
 
     module ClassMethods
