@@ -6,6 +6,50 @@ describe HipaaCrypt::Attributes do
     Class.new { include HipaaCrypt::Attributes }
   end
 
+  context 'implementations' do
+
+    let(:instance){ model.new }
+
+    shared_examples 'a functioning encryptor' do
+      it 'should set an encrypted_value' do
+        expect { instance.foo = 'bar' }.to change { instance.encrypted_foo }
+      end
+
+      it 'should encrypt successfully' do
+        instance.foo = 'bar'
+      end
+
+      it 'should decrypt successfully' do
+        instance.foo = 'bar'
+        instance.foo.should eq 'bar'
+      end
+    end
+
+    context 'with a static iv' do
+      before (:each)do
+        model.encrypt :foo, key: SecureRandom.hex, iv: '1234567890123456'
+      end
+      it_should_behave_like 'a functioning encryptor'
+    end
+
+    context 'with an iv setter' do
+      before (:each)do
+        model.send(:attr_accessor, :foo_iv)
+        model.encrypt :foo, key: SecureRandom.hex, iv: :foo_iv
+      end
+      it_should_behave_like 'a functioning encryptor'
+    end
+
+    context 'with a generated iv' do
+      before (:each)do
+        model.send(:attr_accessor, :foo_iv)
+        model.encrypt :foo, key: SecureRandom.hex
+      end
+      it_should_behave_like 'a functioning encryptor'
+    end
+
+  end
+
   describe HipaaCrypt::Attributes::ClassMethods do
 
     describe '.encrypt' do
