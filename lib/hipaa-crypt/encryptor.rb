@@ -12,6 +12,10 @@ module HipaaCrypt
       @options    = ContextualOptions.new(options)
     end
 
+    def context
+      options.context
+    end
+
     def decrypt string, iv = options.get(:iv)
       setup_cipher __method__, iv
       value      = cipher.update(decode string) + cipher.final
