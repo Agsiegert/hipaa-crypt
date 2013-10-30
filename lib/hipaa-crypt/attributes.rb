@@ -58,13 +58,11 @@ module HipaaCrypt
       def define_encrypted_methods_for_attr(attr, prefix)
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{attr}
-            args = #{prefix}#{attr}.to_s.split("\n", 2).reverse
-            encryptor_for(#{attr.inspect}).decrypt *args
+            encryptor_for(#{attr.inspect}).decrypt *#{prefix}#{attr}.to_s.split("\n", 2).reverse
           end
 
           def #{attr}=(value)
-            string = [encryptor_for(#{attr.inspect}).encrypt(value)].flatten.reverse.join("\n")
-            self.#{prefix}#{attr}= string
+            self.#{prefix}#{attr} = [encryptor_for(#{attr.inspect}).encrypt(value)].flatten.reverse.join("\n")
           end
         RUBY
       end
