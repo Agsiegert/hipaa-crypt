@@ -87,8 +87,7 @@ module HipaaCrypt
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{attr}
             string = #{prefix}#{attr}
-            iv = #{getter_for(iv_method)}
-            encryptor_for(#{attr.inspect}).decrypt string, iv
+            encryptor_for(#{attr.inspect}).decrypt string
           end
 
           def #{attr}=(value)

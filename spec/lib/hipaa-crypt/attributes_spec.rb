@@ -63,8 +63,8 @@ describe HipaaCrypt::Attributes do
 
     context 'defined methods' do
 
-      let(:instance){ model.new }
-      let(:encryptor){ double encrypt: nil, decrypt: nil }
+      let(:instance) { model.new }
+      let(:encryptor) { double encrypt: nil, decrypt: nil }
 
       before(:each) do
         allow(instance).to receive(:encryptor_for).and_return(encryptor)
@@ -135,8 +135,8 @@ describe HipaaCrypt::Attributes do
 
     context 'defined methods' do
 
-      let(:instance){ model.new }
-      let(:encryptor){ double encrypt: nil, decrypt: nil }
+      let(:instance) { model.new }
+      let(:encryptor) { double encrypt: nil, decrypt: nil }
 
       before(:each) do
         allow(instance).to receive(:encryptor_for).and_return(encryptor)
@@ -207,8 +207,8 @@ describe HipaaCrypt::Attributes do
 
     context 'defined methods' do
 
-      let(:instance){ model.new }
-      let(:encryptor){ double encrypt: nil, decrypt: nil }
+      let(:instance) { model.new }
+      let(:encryptor) { double encrypt: nil, decrypt: nil }
 
       before(:each) do
         allow(instance).to receive(:encryptor_for).and_return(encryptor)
@@ -226,13 +226,14 @@ describe HipaaCrypt::Attributes do
         it 'should use the attrs encryptor to decrypt a value' do
           encrypted_value = "some value"
           allow(instance).to receive(:encrypted_foo).and_return(encrypted_value)
-          allow(instance).to receive(:foo_iv).and_return(SecureRandom.hex)
-          expect(encryptor).to receive(:decrypt).with(encrypted_value, instance.foo_iv)
+          expect(encryptor).to receive(:decrypt).with(encrypted_value)
           instance.foo
         end
 
         it 'should be able to decrypt a value set by the setter' do
-          allow(instance).to receive(:encryptor_for).and_return(HipaaCrypt::Encryptor.new key: SecureRandom.hex)
+          allow(instance)
+          .to receive(:encryptor_for)
+              .and_return HipaaCrypt::Encryptor.new(key: SecureRandom.hex, iv: :foo_iv).with_context(instance)
           instance.foo = "bar"
           expect { instance.foo }.to_not raise_error
         end
@@ -310,7 +311,7 @@ describe HipaaCrypt::Attributes do
   end
 
   describe '.prefix_unencrypted_methods_for_attr' do
-    before(:each){ model.send(:define_unencrypted_methods_for_attr, :foo) }
+    before(:each) { model.send(:define_unencrypted_methods_for_attr, :foo) }
     it 'should alias the getters and setters with a prefix' do
 
       getter_method = model.instance_method(:foo)
