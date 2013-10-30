@@ -62,33 +62,8 @@ describe HipaaCrypt::Encryptor do
       encryptor.decrypt(encrypted_value, iv)
     end
 
-    it 'should reset the cipher' do
-      expect(encryptor.cipher)
-      .to receive(:reset)
-          .and_call_original
-      encryptor.decrypt(encrypted_value, iv)
-    end
-
-    it 'should tell the cipher its encrypting' do
-      expect(encryptor.cipher)
-      .to receive(:decrypt)
-          .and_call_original
-      encryptor.decrypt(encrypted_value, iv)
-    end
-
-    it 'should set the cipher key' do
-      expect(encryptor.cipher)
-      .to receive(:key=)
-          .with(encryptor.key)
-          .and_call_original
-      encryptor.decrypt(encrypted_value, iv)
-    end
-
-    it 'should set the cipher iv' do
-      expect(encryptor.cipher)
-      .to receive(:iv=)
-          .with(iv)
-          .and_call_original
+    it 'should call #setup cipher with #encrypt and the iv' do
+      expect(encryptor).to receive(:setup_cipher).with(:decrypt, iv).and_call_original
       encryptor.decrypt(encrypted_value, iv)
     end
 
@@ -125,38 +100,10 @@ describe HipaaCrypt::Encryptor do
 
     end
 
-    it 'should reset the cipher' do
-      expect(encryptor.cipher)
-      .to receive(:reset)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should tell the cipher its encrypting' do
-      expect(encryptor.cipher)
-      .to receive(:encrypt)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should set the cipher key' do
-      expect(encryptor.cipher)
-      .to receive(:key=)
-          .with(encryptor.key)
-          .and_call_original
-      encryptor.encrypt(value)
-    end
-
-    it 'should set the cipher iv' do
-      iv = SecureRandom.uuid
-      allow(encryptor)
-      .to receive(:generate_iv)
-          .and_return(iv)
-      expect(encryptor.cipher)
-      .to receive(:iv=)
-          .with(iv)
-          .and_call_original
-      encryptor.encrypt(value)
+    it 'should call #setup cipher with #encrypt and the iv' do
+      iv = SecureRandom.hex
+      expect(encryptor).to receive(:setup_cipher).with(:encrypt, iv).and_call_original
+      encryptor.encrypt("something", iv)
     end
 
   end
@@ -211,6 +158,29 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
+  describe '#setup_cipher' do
+    it 'reset the cipher' do
+      expect(encryptor.cipher).to receive(:reset).and_call_original
+      encryptor.send(:setup_cipher, :decrypt, SecureRandom.hex)
+    end
+
+    it 'should call the cipher with the given mode' do
+      expect(encryptor.cipher).to receive(:decrypt).and_call_original
+      encryptor.send(:setup_cipher, :decrypt, SecureRandom.hex)
+    end
+
+    it 'should set the key on the cipher' do
+      expect(encryptor.cipher).to receive(:key=).with(encryptor.key).and_call_original
+      encryptor.send(:setup_cipher, :decrypt, SecureRandom.hex)
+    end
+
+    it 'should set the iv on the cipher using the provided iv' do
+      iv = SecureRandom.hex
+      expect(encryptor.cipher).to receive(:iv=).with(iv).and_call_original
+      encryptor.send(:setup_cipher, :decrypt, iv)
+    end
+  end
+
   describe '#cipher_string_from_hash' do
     it 'should return a properly formatted string' do
       string = encryptor.send(:cipher_string_from_hash, { mode: :Abc, name: :foo, key_length: 42 })
@@ -218,10 +188,26 @@ describe HipaaCrypt::Encryptor do
     end
   end
 
+  describe '#decode' do
+    pending 'tested in the public API'
+  end
+
+  describe '#deserialize' do
+    pending 'tested in the public API'
+  end
+
+  describe '#encode' do
+    pending 'tested in the public API'
+  end
+
   describe '#generate_iv' do
     it 'should be a random value' do
       encryptor.send(:generate_iv).should_not eq encryptor.send(:generate_iv)
     end
+  end
+
+  describe '#serialize' do
+    pending 'tested in the public API'
   end
 
 end
