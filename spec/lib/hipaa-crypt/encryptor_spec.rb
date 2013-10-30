@@ -38,7 +38,11 @@ describe HipaaCrypt::Encryptor do
   end
 
   describe '#context' do
-    pending
+    it 'calls #context on options' do
+      allow_any_instance_of(described_class).to receive(:options).and_return options
+      expect(options).to receive(:context)
+      encryptor.context
+    end
   end
 
   describe '#decrypt' do
