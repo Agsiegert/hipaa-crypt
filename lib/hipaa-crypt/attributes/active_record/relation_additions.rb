@@ -4,7 +4,7 @@ module HipaaCrypt
       module RelationAdditions
 
         def where(opts, *rest)
-          # return super(opts, *rest) unless opts.is_a? Hash
+          return super(opts, *rest) unless opts.is_a? Hash
           encrypted_opts = opts.reduce({}) do |hash, (key, value)|
             hash[key] = opts.delete(key) if attribute_encrypted? key
             hash
