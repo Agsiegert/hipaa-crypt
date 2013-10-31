@@ -193,9 +193,9 @@ describe HipaaCrypt::Attributes do
           end
 
           it 'should use the attrs encryptor to decrypt a value' do
-            encrypted_value = "some value"
+            encrypted_value = "iv\nsome-value"
             allow(instance).to receive(:encrypted_foo).and_return(encrypted_value)
-            expect(encryptor).to receive(:decrypt).with(encrypted_value)
+            expect(encryptor).to receive(:decrypt).with('some-value', 'iv')
             instance.foo
           end
 

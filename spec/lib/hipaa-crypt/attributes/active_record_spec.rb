@@ -127,38 +127,50 @@ describe HipaaCrypt::Attributes::ActiveRecord do
 
     describe '.re_encrypt' do
 
-      let(:mock_collection){ 5.times.map { double re_encrypt: true, save: true } }
-      let(:args){ [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
+      let(:mock_collection) { 5.times.map { double re_encrypt: true, save: true } }
+      let(:args) { [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
 
-      before(:each) do
-        all_mock = double
-        allow(all_mock).to receive(:find_in_batches){ |&block| [mock_collection].each(&block) }
-        allow(model).to receive(:all).and_return all_mock
-      end
+      context 'with a double' do
 
-      it 'should call #re_encrypt on each item with the given options' do
-        mock_collection.each do |mock_instance|
-          expect(mock_instance).to receive(:re_encrypt).with(*args)
-          expect(mock_instance).to receive(:save)
+        before(:each) do
+          all_mock = double
+          allow(all_mock).to receive(:find_in_batches) { |&block| [mock_collection].each(&block) }
+          allow(model).to receive(:all).and_return all_mock
         end
-        model.re_encrypt(*args)
+
+        it 'should call #re_encrypt on each item with the given options' do
+          mock_collection.each do |mock_instance|
+            expect(mock_instance).to receive(:re_encrypt).with(*args)
+            expect(mock_instance).to receive(:save)
+          end
+          model.re_encrypt(*args)
+        end
+
+        it 'should not fail with an exception' do
+          expect(mock_collection.sample).to receive(:re_encrypt) { raise Exception, 'something happened' }
+          expect { model.re_encrypt(*args) }.to_not raise_error
+        end
+
       end
 
-      it 'should not fail with an exception' do
-        expect(mock_collection.sample).to receive(:re_encrypt){ raise Exception, 'something happened' }
-        expect { model.re_encrypt(*args) }.to_not raise_error
-
+      it 'should re_encrypt data' do
+        old_options = model.encryptor_for(:email).options.options
+        model.encrypt :email, key: SecureRandom.hex
+        model.re_encrypt :email, old_options
+        expect { model.all.map(&:email) }.to_not raise_error
+        model.delete_all
       end
+
     end
 
     describe '.re_encrypt!' do
 
-      let(:mock_collection){ 5.times.map { double re_encrypt: true, save!: true } }
-      let(:args){ [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
+      let(:mock_collection) { 5.times.map { double re_encrypt: true, save!: true } }
+      let(:args) { [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
 
       before(:each) do
         all_mock = double
-        allow(all_mock).to receive(:find_in_batches){ |&block| [mock_collection].each(&block) }
+        allow(all_mock).to receive(:find_in_batches) { |&block| [mock_collection].each(&block) }
         allow(model).to receive(:all).and_return all_mock
       end
 
@@ -171,7 +183,7 @@ describe HipaaCrypt::Attributes::ActiveRecord do
       end
 
       it 'should fail with an exception' do
-        expect(mock_collection.sample).to receive(:re_encrypt){ raise Exception, 'something happened' }
+        expect(mock_collection.sample).to receive(:re_encrypt) { raise Exception, 'something happened' }
         expect { model.re_encrypt!(*args) }.to raise_error
       end
 
