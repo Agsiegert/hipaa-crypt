@@ -4,7 +4,6 @@ rvm:
   - 1.9.3
   - 2.0.0
 gemfile:
-  - gemfiles/active_record_3.0.x.gemfile
   - gemfiles/active_record_3.1.x.gemfile
   - gemfiles/active_record_3.2.x.gemfile
   - gemfiles/active_record_4.0.x.gemfile
