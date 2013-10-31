@@ -7,7 +7,7 @@ module HipaaCrypt
           all.find_in_batches do |group|
             group.each do |instance|
               begin
-                instance.re_encrypt(*args)
+                instance.re_encrypt(*args.dup)
                 instance.save
               rescue Exception
                 instance
