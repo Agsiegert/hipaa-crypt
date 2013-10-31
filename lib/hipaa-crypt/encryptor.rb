@@ -18,12 +18,12 @@ module HipaaCrypt
 
     def decrypt string, iv = options.get(:iv)
       setup_cipher __method__, iv
-      value      = cipher.update(decode string) + cipher.final
+      value = cipher.update(decode string) + cipher.final
       Callbacks.new(options.raw_value :after_load).run deserialize value
     end
 
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
-      iv ||= generate_iv
+      iv    ||= generate_iv
       value = serialize Callbacks.new(options.raw_value :before_encrypt).run value
       setup_cipher __method__, iv
       value = encode cipher.update(value) + cipher.final
@@ -31,7 +31,7 @@ module HipaaCrypt
     end
 
     def key
-      options.get(:key){ raise ArgumentError, 'you must provide a key to encrypt an attribute' }
+      options.get(:key) { raise ArgumentError, 'you must provide a key to encrypt an attribute' }
     end
 
     def with_context(context)

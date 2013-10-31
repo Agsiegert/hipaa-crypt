@@ -113,7 +113,7 @@ describe HipaaCrypt::Attributes do
     describe '.define_encrypted_attr' do
       it 'should call set_encrypted_attribute with the attr and an encryptor' do
         expect(model).to receive(:set_encrypted_attribute).with :foo, an_instance_of(HipaaCrypt::Encryptor) do |attr, encryptor|
-          expect(encryptor.options.options).to eq hello: :world
+          expect(encryptor.options.options).to include hello: :world
         end
         model.send(:define_encrypted_attr, :foo, hello: :world)
       end
@@ -155,6 +155,7 @@ describe HipaaCrypt::Attributes do
 
         describe 'encrypted attr getter' do
           it 'should use the attrs encryptor' do
+            expect(instance).to receive(:encrypted_foo).and_return('something')
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo
           end
@@ -227,6 +228,7 @@ describe HipaaCrypt::Attributes do
 
         describe 'encrypted attr getter' do
           it 'should use the attrs encryptor' do
+            expect(instance).to receive(:encrypted_foo).and_return('something')
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo
           end
@@ -299,6 +301,7 @@ describe HipaaCrypt::Attributes do
 
         describe 'encrypted attr getter' do
           it 'should use the attrs encryptor' do
+            expect(instance).to receive(:encrypted_foo).and_return('something')
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo
           end

@@ -189,15 +189,15 @@ describe HipaaCrypt::Encryptor do
   end
 
   describe '#decode' do
-    pending 'tested in the public API'
+    # 'tested in the public API'
   end
 
   describe '#deserialize' do
-    pending 'tested in the public API'
+    # 'tested in the public API'
   end
 
   describe '#encode' do
-    pending 'tested in the public API'
+    # 'tested in the public API'
   end
 
   describe '#generate_iv' do
@@ -207,7 +207,7 @@ describe HipaaCrypt::Encryptor do
   end
 
   describe '#serialize' do
-    pending 'tested in the public API'
+    # 'tested in the public API'
   end
 
 end
