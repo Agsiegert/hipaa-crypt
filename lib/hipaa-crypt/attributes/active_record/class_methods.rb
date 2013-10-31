@@ -4,7 +4,7 @@ module HipaaCrypt
       module ClassMethods
 
         def re_encrypt(*args)
-          all.find_in_batches do |group|
+          find_in_batches do |group|
             group.each do |instance|
               begin
                 instance.re_encrypt(*args.dup)
