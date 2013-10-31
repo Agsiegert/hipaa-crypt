@@ -133,9 +133,7 @@ describe HipaaCrypt::Attributes::ActiveRecord do
       context 'with a double' do
 
         before(:each) do
-          all_mock = double
-          allow(all_mock).to receive(:find_in_batches) { |&block| [mock_collection].each(&block) }
-          allow(model).to receive(:all).and_return all_mock
+          allow(model).to receive(:find_in_batches) { |&block| [mock_collection].each(&block) }
         end
 
         it 'should call #re_encrypt on each item with the given options' do
@@ -169,9 +167,7 @@ describe HipaaCrypt::Attributes::ActiveRecord do
       let(:args) { [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
 
       before(:each) do
-        all_mock = double
-        allow(all_mock).to receive(:find_in_batches) { |&block| [mock_collection].each(&block) }
-        allow(model).to receive(:all).and_return all_mock
+        allow(model).to receive(:find_in_batches) { |&block| [mock_collection].each(&block) }
       end
 
       it 'should call #re_encrypt on each item with the given options' do

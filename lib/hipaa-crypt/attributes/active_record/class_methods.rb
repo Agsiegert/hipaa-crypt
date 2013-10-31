@@ -17,7 +17,7 @@ module HipaaCrypt
         end
 
         def re_encrypt!(*args)
-          all.find_in_batches do |group|
+          find_in_batches do |group|
             group.each do |instance|
               instance.re_encrypt(*args)
               instance.save!
