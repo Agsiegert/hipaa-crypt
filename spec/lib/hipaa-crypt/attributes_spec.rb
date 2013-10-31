@@ -103,6 +103,38 @@ describe HipaaCrypt::Attributes do
         expect(model).to receive(:define_unencrypted_methods_for_attr).with(:foo).and_call_original
         model.send(:define_encrypted_attr, :foo, {})
       end
+
+      it 'should call prefix_unencrypted_methods_for_attr' do
+        options = {prefix: 'a_prefix_'}
+        expect(model).to receive(:prefix_unencrypted_methods_for_attr).with(options[:prefix], :foo).and_call_original
+        model.send(:define_encrypted_attr, :foo, options)
+      end
+
+      context 'when a setter is defined and there is an iv' do
+        it 'should call define_encrypted_methods_for_attr_with_settable_iv' do
+          options = {iv: :some_iv, prefix: 'a_prefix_'}
+          allow(model).to receive(:setter_defined?).with(options[:iv]).and_return true
+          expect(model).to receive(:define_encrypted_methods_for_attr_with_settable_iv)
+                           .with(:foo, options[:prefix], options[:iv])
+          model.send(:define_encrypted_attr, :foo, options)
+        end
+      end
+
+      context 'when there is an iv but no setter is defined' do
+        it 'should call define_encrypted_methods_for_attr_with_iv' do
+          options = {iv: :some_iv, prefix: 'a_prefix_'}
+          expect(model).to receive(:define_encrypted_methods_for_attr_with_iv).with(:foo, options[:prefix])
+          model.send(:define_encrypted_attr, :foo, options)
+        end
+      end
+
+      context 'when there is no iv' do
+        it 'should call define_encrypted_methods_for_attr' do
+          options = {prefix: 'a_prefix_'}
+          expect(model).to receive(:define_encrypted_methods_for_attr).with(:foo, options[:prefix])
+          model.send(:define_encrypted_attr, :foo, options)
+        end
+      end
     end
 
     describe '.define_encrypted_methods_for_attr' do
