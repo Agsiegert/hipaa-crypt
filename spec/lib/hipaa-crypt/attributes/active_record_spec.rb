@@ -125,9 +125,61 @@ describe HipaaCrypt::Attributes::ActiveRecord do
 
   describe HipaaCrypt::Attributes::ActiveRecord::ClassMethods do
 
+    describe '.re_encrypt' do
+
+      let(:mock_collection){ 5.times.map { double re_encrypt: true, save: true } }
+      let(:args){ [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
+
+      before(:each) do
+        all_mock = double
+        allow(all_mock).to receive(:find_in_batches){ |&block| [mock_collection].each(&block) }
+        allow(model).to receive(:all).and_return all_mock
+      end
+
+      it 'should call #re_encrypt on each item with the given options' do
+        mock_collection.each do |mock_instance|
+          expect(mock_instance).to receive(:re_encrypt).with(*args)
+          expect(mock_instance).to receive(:save)
+        end
+        model.re_encrypt(*args)
+      end
+
+      it 'should not fail with an exception' do
+        expect(mock_collection.sample).to receive(:re_encrypt){ raise Exception, 'something happened' }
+        expect { model.re_encrypt(*args) }.to_not raise_error
+
+      end
+    end
+
+    describe '.re_encrypt!' do
+
+      let(:mock_collection){ 5.times.map { double re_encrypt: true, save!: true } }
+      let(:args){ [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
+
+      before(:each) do
+        all_mock = double
+        allow(all_mock).to receive(:find_in_batches){ |&block| [mock_collection].each(&block) }
+        allow(model).to receive(:all).and_return all_mock
+      end
+
+      it 'should call #re_encrypt on each item with the given options' do
+        mock_collection.each do |mock_instance|
+          expect(mock_instance).to receive(:re_encrypt).with(*args)
+          expect(mock_instance).to receive(:save!)
+        end
+        model.re_encrypt!(*args)
+      end
+
+      it 'should fail with an exception' do
+        expect(mock_collection.sample).to receive(:re_encrypt){ raise Exception, 'something happened' }
+        expect { model.re_encrypt!(*args) }.to raise_error
+      end
+    end
+
     describe '.relation' do
       it 'should extend with Relation additions' do
-        expect(model.send(:relation).singleton_class.ancestors).to include HipaaCrypt::Attributes::ActiveRecord::RelationAdditions
+        expect(model.send(:relation).singleton_class.ancestors)
+        .to include HipaaCrypt::Attributes::ActiveRecord::RelationAdditions
       end
     end
 

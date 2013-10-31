@@ -3,6 +3,28 @@ module HipaaCrypt
     module ActiveRecord
       module ClassMethods
 
+        def re_encrypt(*args)
+          all.find_in_batches do |group|
+            group.each do |instance|
+              begin
+                instance.re_encrypt(*args)
+                instance.save
+              rescue Exception
+                instance
+              end
+            end
+          end
+        end
+
+        def re_encrypt!(*args)
+          all.find_in_batches do |group|
+            group.each do |instance|
+              instance.re_encrypt(*args)
+              instance.save!
+            end
+          end
+        end
+
         private
 
         def relation(*args)
