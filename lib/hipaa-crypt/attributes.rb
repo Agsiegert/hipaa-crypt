@@ -26,8 +26,7 @@ module HipaaCrypt
       def encrypted_attributes
         @encrypted_attributes ||= {}
         superclass.respond_to?(__method__) ?
-          @encrypted_attributes.merge(superclass.send __method__) :
-          @encrypted_attributes
+          superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
       end
 
       def set_encrypted_attribute(attr, encryptor)
@@ -135,10 +134,36 @@ module HipaaCrypt
 
     # Instance Methods
 
+    def re_encrypt(*attrs)
+      options = attrs.last.is_a?(Hash) ? attrs.pop : {}
+      attrs.each do |attr|
+        # Duplicate the instance and give it the old encryptor
+        current_encryptor_for_attr = encryptor_for(attr)
+        options[:encryptor] ||= current_encryptor_for_attr.class
+        options[:prefix] ||= 'encrypted_'
+        old_encryptor_options = deep_merge_options(current_encryptor_for_attr.options.options, options)
+        duped_instance = self.dup
+        duped_instance.instance_variable_set(:@encryptors, nil)
+        duped_instance.singleton_class.instance_variable_set(:@encrypted_attributes, nil)
+        duped_instance.singleton_class.encrypt(attr, old_encryptor_options)
+
+        # Decrypt the duplicated instance using the getter and
+        # re-encrypt the original instance using the setter
+        send "#{attr}=", duped_instance.send(attr)
+      end
+    end
+
     private
 
+    def deep_merge_options(current_options, options_to_merge)
+      merger = ->(key, v1, v2) { Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
+      current_options.merge(options_to_merge, &merger)
+    end
+
     def encryptor_for(attr)
-      encryptors[attr] ||= self.class.encryptor_for(attr).with_context(self)
+      encryptors[attr] ||= (self.singleton_class.encrypted_attributes[attr] ||
+          self.class.encrypted_attributes[attr]).
+          with_context(self)
     end
 
     def encryptors

@@ -8,7 +8,8 @@ module HipaaCrypt
 
     def initialize(options={})
       options     = options.dup
-      self.cipher = options.delete(:cipher) { { name: :AES, key_length: 256, mode: :CBC } }
+      #self.cipher = options.delete(:cipher) { { name: :AES, key_length: 256, mode: :CBC } }
+      self.cipher = options.fetch(:cipher, { name: :AES, key_length: 256, mode: :CBC })
       @options    = ContextualOptions.new(options)
     end
 
