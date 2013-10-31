@@ -174,6 +174,7 @@ describe HipaaCrypt::Attributes::ActiveRecord do
         expect(mock_collection.sample).to receive(:re_encrypt){ raise Exception, 'something happened' }
         expect { model.re_encrypt!(*args) }.to raise_error
       end
+
     end
 
     describe '.relation' do
