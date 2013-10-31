@@ -461,4 +461,81 @@ describe HipaaCrypt::Attributes do
 
   end
 
+  describe '#re_encrypt' do
+    require 'securerandom'
+
+    let(:old_options) do
+      {
+          iv: '9Plkd4vMBsMcQRsl5nD+/TJ41RQX4Q2xmlykrP0nizWqia84nd7c4e8eCFs=',
+          key: '1738a4f3eae8a310da7024c032b6451d',
+          cipher: {name: :AES, key_length: 256, mode: :OFB}
+      }
+    end
+    let(:object_with_encryption) do
+      klass = Class.new { include HipaaCrypt::Attributes }
+      klass.encrypt :foo, :bar, :baz, old_options
+      stub_const('ClassWithEncryption', klass)
+      ClassWithEncryption.new
+    end
+    let(:foo_bar_baz) { ['foo', 'bar', 'baz'] }
+    let(:old_unencrypted_foo_bar_baz) { ["foo's value", "bar's value", "baz's value"] }
+    let(:old_encrypted_foo_bar_baz) do
+      encrypted_values = []
+      0.upto(2) do |n|
+        eval("object_with_encryption.#{foo_bar_baz[n]} = old_unencrypted_foo_bar_baz[#{n}]")
+        eval("encrypted_values << object_with_encryption.encrypted_#{foo_bar_baz[n]}")
+      end
+      encrypted_values
+    end
+
+    before(:each) do
+      object_with_encryption
+      old_encrypted_foo_bar_baz
+      object_with_encryption.instance_variable_set(:@encryptors, nil)
+      object_with_encryption.class.instance_variable_set(:@encrypted_attributes, nil)
+    end
+
+    context 'when "key" is the only difference' do
+      let(:object_with_new_encryption) do
+        new_options = old_options.merge key: 'fa8ccb8ff6ca60a2a9c1db4b2356da18'
+        object_with_encryption.class.encrypt(:foo, :bar, :baz, new_options)
+        object_with_encryption
+      end
+
+      it 'should be able to re-encrypt using the new key' do
+        # This is just to confirm that the values WERE encrypted before re-encryption.
+        0.upto(2) {|n| expect(old_encrypted_foo_bar_baz[n]).not_to eq old_unencrypted_foo_bar_baz[n]}
+
+        old_key = { key: '1738a4f3eae8a310da7024c032b6451d' }
+
+        object_with_new_encryption.re_encrypt(:foo, :bar, :baz, old_key)
+        0.upto(2) do |n|
+          expect(eval("object_with_new_encryption.#{foo_bar_baz[n]}")).to eq old_unencrypted_foo_bar_baz[n]
+          expect(eval("object_with_new_encryption.encrypted_#{foo_bar_baz[n]}")).not_to eq(old_encrypted_foo_bar_baz[n])
+        end
+      end
+    end
+
+    context 'when "key" and "cipher" mode are the only differences' do
+      let(:object_with_new_encryption) do
+        new_options = old_options.merge({ key: 'fa8ccb8ff6ca60a2a9c1db4b2356da18', cipher: {name: :AES, key_length: 256, mode: :CBC} })
+        object_with_encryption.class.encrypt(:foo, :bar, :baz, new_options)
+        object_with_encryption
+      end
+
+      it 'should be able to re-encrypt using the new key and the new cipher mode' do
+        old_key_and_cipher_mode = {
+            key: '1738a4f3eae8a310da7024c032b6451d',
+            cipher: { mode: :OFB }
+        }
+
+        object_with_new_encryption.re_encrypt(:foo, :bar, :baz, old_key_and_cipher_mode)
+        0.upto(2) do |n|
+          expect(eval("object_with_new_encryption.#{foo_bar_baz[n]}")).to eq old_unencrypted_foo_bar_baz[n]
+          expect(eval("object_with_new_encryption.encrypted_#{foo_bar_baz[n]}")).not_to eq(old_encrypted_foo_bar_baz[n])
+        end
+      end
+    end
+  end
+
 end
