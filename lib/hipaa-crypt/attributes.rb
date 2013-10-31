@@ -61,12 +61,14 @@ module HipaaCrypt
             encrypted_attributes[:#{attr}] ||= begin
               enc_val = #{prefix}#{attr}
               return nil if enc_val.nil?
-              encryptor_for(#{attr.inspect}).decrypt *enc_val.to_s.split("\n", 2).reverse
+              iv, value = enc_val.split("\n", 2)
+              encryptor_for(#{attr.inspect}).decrypt value, iv
             end
           end
 
           def #{attr}=(value)
-            self.#{prefix}#{attr} = [encryptor_for(#{attr.inspect}).encrypt(value)].flatten.reverse.join("\n")
+            value, iv = encryptor_for(#{attr.inspect}).encrypt(value)
+            self.#{prefix}#{attr} = [iv, value].join("\n")
             encrypted_attributes.delete(:#{attr})
             value
           end
