@@ -50,6 +50,25 @@ describe HipaaCrypt::Attributes do
 
   end
 
+  describe '.included' do
+    context 'when the base is a descendant of active record' do
+      let(:model) do
+        stub_const 'ActiveRecord::Base', Class.new
+        Class.new(ActiveRecord::Base) { include HipaaCrypt::Attributes }
+      end
+
+      it 'should include the active record extension' do
+        expect(model.ancestors).to include HipaaCrypt::Attributes::ActiveRecord
+      end
+    end
+
+    context 'when the base is a descendant of anything supported' do
+      it 'should not include the active record extension' do
+        expect(model.ancestors).to_not include HipaaCrypt::Attributes::ActiveRecord
+      end
+    end
+  end
+
   describe HipaaCrypt::Attributes::ClassMethods do
 
     describe '.encrypt' do
@@ -94,7 +113,7 @@ describe HipaaCrypt::Attributes do
     describe '.define_encrypted_attr' do
       it 'should call set_encrypted_attribute with the attr and an encryptor' do
         expect(model).to receive(:set_encrypted_attribute).with :foo, an_instance_of(HipaaCrypt::Encryptor) do |attr, encryptor|
-          expect(encryptor.options.options).to eq hello: :world
+          expect(encryptor.options.options).to include hello: :world
         end
         model.send(:define_encrypted_attr, :foo, hello: :world)
       end
@@ -168,14 +187,15 @@ describe HipaaCrypt::Attributes do
 
         describe 'encrypted attr getter' do
           it 'should use the attrs encryptor' do
+            expect(instance).to receive(:encrypted_foo).and_return('something')
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo
           end
 
           it 'should use the attrs encryptor to decrypt a value' do
-            encrypted_value = "some value"
+            encrypted_value = "iv\nsome-value"
             allow(instance).to receive(:encrypted_foo).and_return(encrypted_value)
-            expect(encryptor).to receive(:decrypt).with(encrypted_value)
+            expect(encryptor).to receive(:decrypt).with('some-value', 'iv')
             instance.foo
           end
 
@@ -240,6 +260,7 @@ describe HipaaCrypt::Attributes do
 
         describe 'encrypted attr getter' do
           it 'should use the attrs encryptor' do
+            expect(instance).to receive(:encrypted_foo).and_return('something')
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo
           end
@@ -312,6 +333,7 @@ describe HipaaCrypt::Attributes do
 
         describe 'encrypted attr getter' do
           it 'should use the attrs encryptor' do
+            expect(instance).to receive(:encrypted_foo).and_return('something')
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo
           end

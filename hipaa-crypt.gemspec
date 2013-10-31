@@ -28,6 +28,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pry"
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "simplecov"
+  spec.add_development_dependency "appraisal", "1.0.0.beta1"
+
+  # For creating dummy objects
+  spec.add_development_dependency "faker"
+  spec.add_development_dependency "sqlite3"
 
   # For Testing Some ORMS
   spec.add_development_dependency "activerecord"
