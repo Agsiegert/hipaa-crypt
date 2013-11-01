@@ -56,7 +56,7 @@ module HipaaCrypt
       end
 
       def define_encrypted_methods_for_attr(attr, prefix)
-        define_method "#{attr}" do
+        define_encrypted_attr_getter(attr) do
           encrypted_attribute(attr) do
             return unless (enc_val = public_send "#{prefix}#{attr}")
             iv, value = enc_val.split("\n", 2)
@@ -109,6 +109,10 @@ module HipaaCrypt
             value
           end
         RUBY
+      end
+
+      def define_encrypted_attr_getter(attr, &block)
+        define_method "#{attr}", &block
       end
 
       def define_unencrypted_methods_for_attr(attr)
