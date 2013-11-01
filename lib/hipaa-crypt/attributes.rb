@@ -57,7 +57,7 @@ module HipaaCrypt
 
       def define_encrypted_methods_for_attr(attr, prefix)
         define_method "#{attr}" do
-          encrypted_attributes[attr] ||= begin
+          encrypted_attribute(attr) do
             return unless (enc_val = public_send "#{prefix}#{attr}")
             iv, value = enc_val.split("\n", 2)
             encryptor_for(attr).decrypt value, iv
@@ -67,8 +67,8 @@ module HipaaCrypt
         define_method "#{attr}=" do |value|
           value, iv = encryptor_for(attr).encrypt(value)
           public_send "#{prefix}#{attr}=", [iv, value].join("\n")
-              encrypted_attributes.delete(attr)
-            value
+          encrypted_attributes.delete(attr)
+          value
         end
       end
 
@@ -138,10 +138,10 @@ module HipaaCrypt
       attrs.each do |attr|
         # Duplicate the instance and give it the old encryptor
         current_encryptor_for_attr = encryptor_for(attr)
-        options[:encryptor] ||= current_encryptor_for_attr.class
-        options[:prefix] ||= 'encrypted_'
-        old_encryptor_options = deep_merge_options(current_encryptor_for_attr.options.options, options)
-        duped_instance = self.dup
+        options[:encryptor]        ||= current_encryptor_for_attr.class
+        options[:prefix]           ||= 'encrypted_'
+        old_encryptor_options      = deep_merge_options(current_encryptor_for_attr.options.options, options)
+        duped_instance             = self.dup
         duped_instance.instance_variable_set(:@encryptors, nil)
         duped_instance.singleton_class.instance_variable_set(:@encrypted_attributes, nil)
         duped_instance.singleton_class.encrypt(attr, old_encryptor_options)
@@ -161,8 +161,8 @@ module HipaaCrypt
 
     def encryptor_for(attr)
       encryptors[attr] ||= (self.singleton_class.encrypted_attributes[attr] ||
-          self.class.encrypted_attributes[attr]).
-          with_context(self)
+        self.class.encrypted_attributes[attr]).
+        with_context(self)
     end
 
     def encryptors
@@ -171,6 +171,10 @@ module HipaaCrypt
 
     def encrypted_attributes
       @encrypted_attributes ||= {}
+    end
+
+    def encrypted_attribute(attr, &block)
+      encrypted_attributes[attr] ||= (block.call if block_given?)
     end
 
   end
