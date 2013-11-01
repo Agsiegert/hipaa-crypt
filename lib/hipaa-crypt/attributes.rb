@@ -94,7 +94,7 @@ module HipaaCrypt
           encrypted_attribute(attr) do
             enc_val = public_send "#{prefix}#{attr}"
             return nil if enc_val.nil?
-            encryptor_for(attr).decrypt enc_val
+            encryptor_for(attr).decrypt enc_val, public_send(iv_method)
           end
         end
 
