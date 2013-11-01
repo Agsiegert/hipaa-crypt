@@ -144,7 +144,6 @@ module HipaaCrypt
         # Duplicate the instance and give it the old encryptor
         current_encryptor_for_attr = encryptor_for(attr)
         options[:encryptor]        ||= current_encryptor_for_attr.class
-        options[:prefix]           ||= 'encrypted_'
         old_encryptor_options      = deep_merge_options(current_encryptor_for_attr.options.options, options)
         duped_instance             = self.dup
         duped_instance.singleton_class.encrypt(attr, old_encryptor_options)
