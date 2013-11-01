@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'securerandom'
 
 describe HipaaCrypt::AttrEncryptedEncryptor do
 
