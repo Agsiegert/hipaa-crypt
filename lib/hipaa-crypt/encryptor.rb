@@ -1,4 +1,5 @@
 require 'openssl/cipher'
+require 'logger'
 
 module HipaaCrypt
   class Encryptor
@@ -8,8 +9,7 @@ module HipaaCrypt
 
     def initialize(options={})
       options     = options.dup
-      #self.cipher = options.delete(:cipher) { { name: :AES, key_length: 256, mode: :CBC } }
-      self.cipher = options.fetch(:cipher, { name: :AES, key_length: 256, mode: :CBC })
+      self.cipher = options.fetch :cipher, name: :AES, key_length: 256, mode: :CBC
       @options    = ContextualOptions.new(options)
     end
 
@@ -33,6 +33,10 @@ module HipaaCrypt
 
     def key
       options.get(:key) { raise ArgumentError, 'you must provide a key to encrypt an attribute' }
+    end
+
+    def logger
+      options.get(:logger){ }
     end
 
     def with_context(context)

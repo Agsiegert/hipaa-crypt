@@ -133,6 +133,11 @@ module HipaaCrypt
 
     # Instance Methods
 
+    def initialize_dup(other_object)
+      @encryptors = nil
+      @encrypted_attributes = nil
+    end
+
     def re_encrypt(*attrs)
       options = attrs.last.is_a?(Hash) ? attrs.pop : {}
       attrs.each do |attr|
@@ -142,13 +147,11 @@ module HipaaCrypt
         options[:prefix]           ||= 'encrypted_'
         old_encryptor_options      = deep_merge_options(current_encryptor_for_attr.options.options, options)
         duped_instance             = self.dup
-        duped_instance.instance_variable_set(:@encryptors, nil)
-        duped_instance.singleton_class.instance_variable_set(:@encrypted_attributes, nil)
         duped_instance.singleton_class.encrypt(attr, old_encryptor_options)
 
         # Decrypt the duplicated instance using the getter and
         # re-encrypt the original instance using the setter
-        send "#{attr}=", duped_instance.send(attr)
+        public_send "#{attr}=", duped_instance.public_send(attr)
       end
     end
 
