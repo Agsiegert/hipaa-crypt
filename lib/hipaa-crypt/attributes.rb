@@ -56,23 +56,20 @@ module HipaaCrypt
       end
 
       def define_encrypted_methods_for_attr(attr, prefix)
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{attr}
-            encrypted_attributes[:#{attr}] ||= begin
-              enc_val = #{prefix}#{attr}
-              return nil if enc_val.nil?
-              iv, value = enc_val.split("\n", 2)
-              encryptor_for(#{attr.inspect}).decrypt value, iv
-            end
+        define_method "#{attr}" do
+          encrypted_attributes[attr] ||= begin
+            return unless (enc_val = public_send "#{prefix}#{attr}")
+            iv, value = enc_val.split("\n", 2)
+            encryptor_for(attr).decrypt value, iv
           end
+        end
 
-          def #{attr}=(value)
-            value, iv = encryptor_for(#{attr.inspect}).encrypt(value)
-            self.#{prefix}#{attr} = [iv, value].join("\n")
-            encrypted_attributes.delete(:#{attr})
+        define_method "#{attr}=" do |value|
+          value, iv = encryptor_for(attr).encrypt(value)
+          public_send "#{prefix}#{attr}=", [iv, value].join("\n")
+              encrypted_attributes.delete(attr)
             value
-          end
-        RUBY
+        end
       end
 
       def define_encrypted_methods_for_attr_with_iv(attr, prefix)
