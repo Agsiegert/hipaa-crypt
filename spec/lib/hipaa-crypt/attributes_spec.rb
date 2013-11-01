@@ -454,12 +454,6 @@ describe HipaaCrypt::Attributes do
       end
     end
 
-    describe '.setter_for' do
-      it 'should append an equals to the attr' do
-        expect(model.send(:setter_for, :foo)).to eq :foo=
-      end
-    end
-
   end
 
   context 'instance methods' do
