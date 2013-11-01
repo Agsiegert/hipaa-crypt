@@ -211,6 +211,11 @@ describe HipaaCrypt::Attributes do
             expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
             instance.foo = 'value'
           end
+
+          it 'should leave null value as null' do
+            instance.foo = nil
+            expect(instance.foo).to eq nil
+          end
         end
 
         it 'should use the attrs encryptor to decrypt a value' do

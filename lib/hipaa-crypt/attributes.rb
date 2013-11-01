@@ -65,8 +65,13 @@ module HipaaCrypt
         end
 
         define_encrypted_attr_setter(attr) do |value|
-          value, iv = encryptor_for(attr).encrypt(value)
-          public_send "#{prefix}#{attr}=", [iv, value].join("\n")
+          attr_value = if value.nil?
+            nil
+          else
+            value, iv = encryptor_for(attr).encrypt(value)
+            [iv, value].join("\n")
+          end
+          public_send "#{prefix}#{attr}=", attr_value
           encrypted_attributes.delete(attr)
           value
         end
@@ -82,7 +87,7 @@ module HipaaCrypt
         end
 
         define_encrypted_attr_setter(attr) do |value|
-          string, iv = encryptor_for(attr).encrypt(value)
+          string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
           public_send "#{prefix}#{attr}=", string
           encrypted_attributes.delete(attr)
           value
@@ -99,7 +104,7 @@ module HipaaCrypt
         end
 
         define_encrypted_attr_setter(attr) do |value|
-          string, iv = encryptor_for(attr).encrypt(value)
+          string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
           public_send "#{iv_method}=", iv
           public_send "#{prefix}#{attr}=", string
           encrypted_attributes.delete(attr)
