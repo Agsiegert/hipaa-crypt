@@ -5,7 +5,7 @@ module HipaaCrypt
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.send :include, ActiveRecord if defined?(::ActiveRecord::Base) && base.ancestors.include?(::ActiveRecord::Base)
+      base.send :include, ActiveRecord if defined?(::ActiveRecord::Base) && base <= ::ActiveRecord::Base
     end
 
     module ClassMethods
