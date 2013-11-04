@@ -1,6 +1,9 @@
 # HipaaCrypt Gem
-[![Code Climate](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/badges/3cb20b99b4a336e33721/gpa.png)](https://codeclimate.com/repos/526e7d3a7e00a445c300943d/feed)
-[![Build Status](https://magnum.travis-ci.com/itriage-core/hipaa-crypt.png?token=Rd94jzYngRqvof5Mizxx&branch=master)](https://magnum.travis-ci.com/itriage-core/hipaa-crypt)
+[![Version](http://allthebadges.io/itriage/hipaa-crypt/badge_fury.png)](http://allthebadges.io/itriage/hipaa-crypt/badge_fury)
+[![Dependencies](http://allthebadges.io/itriage/hipaa-crypt/gemnasium.png)](http://allthebadges.io/itriage/hipaa-crypt/gemnasium)
+[![Build Status](http://allthebadges.io/itriage/hipaa-crypt/travis.png)](http://allthebadges.io/itriage/hipaa-crypt/travis)
+[![Coverage](http://allthebadges.io/itriage/hipaa-crypt/coveralls.png)](http://allthebadges.io/itriage/hipaa-crypt/coveralls)
+[![Code Climate](http://allthebadges.io/itriage/hipaa-crypt/code_climate.png)](http://allthebadges.io/itriage/hipaa-crypt/code_climate)
 
 **State:** Prototype *`-(in progress to)>`* Version 1.0.0-stable
 
