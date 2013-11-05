@@ -54,6 +54,7 @@ describe HipaaCrypt::Attributes do
     context 'when the base is a descendant of active record' do
       let(:model) do
         stub_const 'ActiveRecord::Base', Class.new
+        allow(ActiveRecord::Base).to receive(:after_initialize)
         Class.new(ActiveRecord::Base) { include HipaaCrypt::Attributes }
       end
 

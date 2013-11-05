@@ -42,7 +42,7 @@ module HipaaCrypt
     end
 
     def logger
-      @logger ||= options.get(:logger){ Logger.new STDOUT }
+      @logger ||= options.get(:logger){ HipaaCrypt.config.logger }
     end
 
     def with_context(context)

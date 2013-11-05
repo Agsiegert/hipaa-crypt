@@ -8,7 +8,7 @@ describe HipaaCrypt::Configuration do
       before(:each){ stub_const('Rails', double(logger: rails_logger)) }
       it 'uses Rails.logger' do
         config = HipaaCrypt::Configuration.new
-        expect(config.logger).to eq rails_logger
+        expect(config.logger).to be_a rails_logger.class
       end
     end
 
@@ -18,7 +18,7 @@ describe HipaaCrypt::Configuration do
         config = HipaaCrypt::Configuration.new
         expect(Logger).to receive(:new).with(STDOUT).and_return(fake_logger)
 
-        expect(config.logger).to eq fake_logger
+        expect(config.logger).to be_a fake_logger.class
       end
     end
   end

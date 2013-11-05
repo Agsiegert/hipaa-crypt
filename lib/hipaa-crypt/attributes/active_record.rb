@@ -28,7 +28,7 @@ module HipaaCrypt
         end
       end
 
-      class LogFormatter < Logger::SimpleFormatter
+      class LogFormatter
 
         attr_reader :record
 
@@ -37,8 +37,7 @@ module HipaaCrypt
         end
 
         def call(severity, time, progname, msg)
-          msg = "#{severity.upcase} [#{Time.now}] #<#{record.class.name} id: #{record.id}> #{msg}"
-          super severity, time, progname, msg
+          "#{severity.upcase} [#{time}] #<#{record.class.name} id: #{record.id}> #{msg}\n"
         end
 
       end
