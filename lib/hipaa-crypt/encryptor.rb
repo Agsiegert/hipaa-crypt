@@ -13,6 +13,10 @@ module HipaaCrypt
       @options    = ContextualOptions.new(options)
     end
 
+    def attribute
+      options.raw_value(:attribute)
+    end
+
     def context
       options.context
     end
@@ -22,7 +26,7 @@ module HipaaCrypt
       value = cipher.update(decode string) + cipher.final
       Callbacks.new(options.raw_value :after_load).run deserialize value
     rescue => e
-      Logger.error "Decrypt Error => #{e.class}: #{e.message}"
+      logger.error "Decrypt Error (#{attribute}) => #{e.class}: #{e.message}"
       raise e
     end
 
@@ -33,7 +37,7 @@ module HipaaCrypt
       value = encode cipher.update(value) + cipher.final
       [value, iv]
     rescue => e
-      Logger.error "Encrypt Error => #{e.class}: #{e.message}"
+      logger.error "Encrypt Error (#{attribute}) => #{e.class}: #{e.message}"
       raise e
     end
 
