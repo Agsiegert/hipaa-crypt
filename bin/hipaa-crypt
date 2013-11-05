@@ -37,14 +37,25 @@ class HipaaCrypt::Cli < Thor
   end
 
   def options_to_hash(options)
-    options.each_slice(2).reduce({}) do |hash, (key, value)|
-      hash.merge key.sub(/^--/, '').to_sym => try_eval(value)
+    options.each_with_index.reduce({}) do |hash, (key, index)|
+      hash_key = key.sub(/^--/, '').to_sym
+      value = options[index + 1]
+
+      key_is_key = /^\-\-/ =~ key
+      value_is_value = /^[^\-\-]/ =~ value
+
+      if key_is_key && value_is_value
+        hash[hash_key] = try_eval value
+      elsif key_is_key
+        hash[hash_key] = true
+      end
+      hash
     end
   end
 
   def try_eval(string)
     eval(string)
-  rescue
+  rescue => e
     string
   end
 end
