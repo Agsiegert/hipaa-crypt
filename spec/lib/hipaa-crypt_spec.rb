@@ -19,7 +19,6 @@ describe HipaaCrypt do
     context 'when a cipher is not added' do
       it 'sets a default cipher' do
         default_cipher = { name: :AES, key_length: 256, mode: :CBC }
-        HipaaCrypt.instance_variable_set(:@config, nil)
         config = HipaaCrypt.config
 
         expect(config.cipher).to eq default_cipher
