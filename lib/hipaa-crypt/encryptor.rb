@@ -32,11 +32,11 @@ module HipaaCrypt
     end
 
     def key
-      options.get(:key) { HipaaCrypt.config.key || raise (ArgumentError, 'you must provide a key to encrypt an attribute') }
+      options.get(:key) { HipaaCrypt.config.key || raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
     end
 
     def logger
-      options.get(:logger){ }
+      options.get(:logger){ Logger.new STDOUT }
     end
 
     def with_context(context)
