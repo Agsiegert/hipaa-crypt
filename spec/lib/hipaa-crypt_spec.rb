@@ -2,10 +2,14 @@ require 'spec_helper'
 
 describe HipaaCrypt do
 
+  after(:each) do
+    HipaaCrypt.instance_variable_set :@config, nil
+  end
+
   describe '.config' do
     context 'when a cipher is added' do
       it 'sets Configuration#chiper' do
-        cipher = { name: 'XYZ', length: 256, mode: 'ABC' }
+        cipher = { name: 'XYZ', key_length: 256, mode: 'ABC' }
         config = HipaaCrypt.config { |c| c.cipher =  cipher }
 
         expect(config.cipher).to eq cipher
@@ -14,7 +18,7 @@ describe HipaaCrypt do
 
     context 'when a cipher is not added' do
       it 'sets a default cipher' do
-        default_cipher = { name: 'AES', length: 256, mode: 'CBC' }
+        default_cipher = { name: :AES, key_length: 256, mode: :CBC }
         HipaaCrypt.instance_variable_set(:@config, nil)
         config = HipaaCrypt.config
 
