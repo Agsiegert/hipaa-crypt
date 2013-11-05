@@ -37,8 +37,9 @@ module HipaaCrypt
       private
 
       def define_encrypted_attr(attr, options)
-        encryptor = options.delete(:encryptor) { Encryptor }
-        prefix    = options[:prefix] ||= :encrypted_
+        options[:attribute] = attr
+        encryptor           = options.delete(:encryptor) { Encryptor }
+        prefix              = options[:prefix] ||= :encrypted_
         set_encrypted_attribute attr, encryptor.new(options)
 
         define_unencrypted_methods_for_attr attr
@@ -58,7 +59,8 @@ module HipaaCrypt
       def define_encrypted_methods_for_attr(attr, prefix)
         define_encrypted_attr_getter(attr) do
           encrypted_attribute(attr) do
-            return unless (enc_val = public_send "#{prefix}#{attr}")
+            enc_val = public_send "#{prefix}#{attr}"
+            return enc_val if enc_val.nil? || enc_val.empty?
             iv, value = enc_val.split("\n", 2)
             encryptor_for(attr).decrypt value, iv
           end
@@ -76,7 +78,7 @@ module HipaaCrypt
         define_encrypted_attr_getter(attr) do
           encrypted_attribute(attr) do
             enc_val = public_send "#{prefix}#{attr}"
-            return nil if enc_val.nil?
+            return enc_val if enc_val.nil? || enc_val.empty?
             encryptor_for(attr).decrypt enc_val
           end
         end
@@ -93,7 +95,7 @@ module HipaaCrypt
         define_encrypted_attr_getter(attr) do
           encrypted_attribute(attr) do
             enc_val = public_send "#{prefix}#{attr}"
-            return nil if enc_val.nil?
+            return enc_val if enc_val.nil? || enc_val.empty?
             encryptor_for(attr).decrypt enc_val, public_send(iv_method)
           end
         end
@@ -133,25 +135,36 @@ module HipaaCrypt
 
     # Instance Methods
 
-    def initialize_dup(other_object)
+    def initialize_clone(other_object)
       @encryptors           = nil
       @encrypted_attributes = nil
+      super
     end
 
     def re_encrypt(*attrs)
-      options = attrs.last.is_a?(Hash) ? attrs.pop : {}
+      re_encrypt!(*attrs)
+    rescue
+      false
+    end
+
+    def re_encrypt!(*attrs)
+      options         = attrs.last.is_a?(Hash) ? attrs.pop : {}
+      cloned_instance = self.clone
       attrs.each do |attr|
         # Duplicate the instance and give it the old encryptor
         current_encryptor_for_attr = encryptor_for(attr)
         options[:encryptor]        ||= current_encryptor_for_attr.class
         old_encryptor_options      = deep_merge_options(current_encryptor_for_attr.options.options, options)
-        duped_instance             = self.dup
-        duped_instance.singleton_class.encrypt(attr, old_encryptor_options)
+        cloned_instance.singleton_class.encrypt(attr, old_encryptor_options)
 
         # Decrypt the duplicated instance using the getter and
         # re-encrypt the original instance using the setter
-        public_send "#{attr}=", duped_instance.public_send(attr)
+        public_send "#{attr}=", cloned_instance.public_send(attr)
+
+        # Confirm we can read the new value
+        public_send "#{attr}"
       end
+      true
     end
 
     private
