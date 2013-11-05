@@ -17,6 +17,11 @@ require 'hipaa-crypt'
 
 Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
 
+HipaaCrypt.config do |c|
+  c.logger = Logger.new('/dev/null')
+  c.silent_re_encrypt = true
+end
+
 RSpec.configure do |config|
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true
