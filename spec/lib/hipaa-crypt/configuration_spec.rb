@@ -27,15 +27,15 @@ describe HipaaCrypt::Configuration do
   describe '#cipher' do
     context 'when no cipher is added' do
       it 'sets the default cipher' do
-        default_cipher = { name: 'AES', length: 256, mode: 'CBC' }
+        default_cipher = { name: 'AES', key_length: 256, mode: 'CBC' }
 
-        expect( HipaaCrypt::Configuration.new.cipher).to eq default_cipher
+        expect(HipaaCrypt::Configuration.new.cipher).to eq default_cipher
       end
     end
 
     context 'when a cipher is added' do
       it 'sets the  cipher' do
-        cipher = { name: 'XYZ', length: 256, mode: 'ABC' }
+        cipher = { name: 'XYZ', key_length: 256, mode: 'ABC' }
         config = HipaaCrypt::Configuration.new
         config.cipher = cipher
 

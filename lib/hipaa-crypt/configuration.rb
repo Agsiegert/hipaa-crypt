@@ -6,7 +6,7 @@ module HipaaCrypt
     attr_writer :cipher, :logger
 
     def cipher
-      @cipher ||= {name: 'AES', length: 256, mode: 'CBC'}
+      @cipher ||= {name: 'AES', key_length: 256, mode: 'CBC'}
     end
 
     def logger
