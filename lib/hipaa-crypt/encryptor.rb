@@ -21,6 +21,9 @@ module HipaaCrypt
       setup_cipher __method__, iv
       value = cipher.update(decode string) + cipher.final
       Callbacks.new(options.raw_value :after_load).run deserialize value
+    rescue => e
+      Logger.error "Decrypt Error => #{e.class}: #{e.message}"
+      raise e
     end
 
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
@@ -29,6 +32,9 @@ module HipaaCrypt
       setup_cipher __method__, iv
       value = encode cipher.update(value) + cipher.final
       [value, iv]
+    rescue => e
+      Logger.error "Encrypt Error => #{e.class}: #{e.message}"
+      raise e
     end
 
     def key
@@ -36,7 +42,7 @@ module HipaaCrypt
     end
 
     def logger
-      options.get(:logger){ Logger.new STDOUT }
+      @logger ||= options.get(:logger){ Logger.new STDOUT }
     end
 
     def with_context(context)

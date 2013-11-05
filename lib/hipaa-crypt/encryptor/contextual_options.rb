@@ -8,6 +8,10 @@ module HipaaCrypt
         @options = options
       end
 
+      def initialize_dup(other)
+        @context = nil
+      end
+
       def context
         @context || raise(ArgumentError, 'context not set')
       end

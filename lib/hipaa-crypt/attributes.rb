@@ -65,13 +65,8 @@ module HipaaCrypt
         end
 
         define_encrypted_attr_setter(attr) do |value|
-          attr_value = if value.nil?
-            nil
-          else
-            value, iv = encryptor_for(attr).encrypt(value)
-            [iv, value].join("\n")
-          end
-          public_send "#{prefix}#{attr}=", attr_value
+          value, iv = value.nil? ? nil : encryptor_for(attr).encrypt(value)
+          public_send "#{prefix}#{attr}=", value ? [iv, value].join("\n") : nil
           encrypted_attributes.delete(attr)
           value
         end
@@ -139,7 +134,7 @@ module HipaaCrypt
     # Instance Methods
 
     def initialize_dup(other_object)
-      @encryptors = nil
+      @encryptors           = nil
       @encrypted_attributes = nil
     end
 
@@ -167,9 +162,11 @@ module HipaaCrypt
     end
 
     def encryptor_for(attr)
-      encryptors[attr] ||= (self.singleton_class.encrypted_attributes[attr] ||
-        self.class.encrypted_attributes[attr]).
-        with_context(self)
+      encryptors[attr] ||= any_class(:encryptor_for, attr).with_context(self)
+    end
+
+    def any_class(*args)
+      self.singleton_class.send(*args) || self.class.send(*args)
     end
 
     def encryptors

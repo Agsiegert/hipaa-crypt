@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+require 'hipaa-crypt'
+require 'thor'
+require 'pry'
+
+class HipaaCrypt::Cli < Thor
+
+  require File.expand_path 'config/environment' if File.exists? File.expand_path 'config/environment.rb'
+
+  def initialize(args=[], options={}, config={})
+    super(args, {}, config)
+    self.options = options_to_hash(options)
+  end
+
+  desc 're_encrypt MODEL', 're_encrypt a models attributes'
+
+  def re_encrypt(*args)
+    if options.delete :all
+      re_encrypt_all(*args)
+    else
+      re_encrypt_one args.shift, *args
+    end
+  end
+
+  private
+
+  def re_encrypt_one(model, *attrs)
+    attrs.map!(&:to_sym)
+    try_eval(model).re_encrypt(*attrs, options)
+  end
+
+  def re_encrypt_all(*models)
+    models.map { |string| try_eval string }.each do |model|
+      model.re_encrypt *model.encrypted_attributes.keys, options
+    end
+  end
+
+  def options_to_hash(options)
+    options.each_slice(2).reduce({}) do |hash, (key, value)|
+      hash.merge key.sub(/^--/, '').to_sym => try_eval(value)
+    end
+  end
+
+  def try_eval(string)
+    eval(string)
+  rescue
+    string
+  end
+end
+
+HipaaCrypt::Cli.start(ARGV)

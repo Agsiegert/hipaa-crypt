@@ -1,3 +1,5 @@
+require 'bundler/setup'
+
 module HipaaCrypt
 
   autoload :Callbacks, 'hipaa-crypt/callbacks'

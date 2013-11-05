@@ -9,6 +9,7 @@ module HipaaCrypt
 
       def self.included(base)
         base.extend(ClassMethods)
+        base.after_initialize :add_log_formatter
       end
 
       def matches_conditions(conditions={})
@@ -19,6 +20,27 @@ module HipaaCrypt
 
       def matches_condition(attr, value)
         instance_eval(&attr.to_sym) == value
+      end
+
+      def add_log_formatter
+        self.class.encrypted_attributes.each do |(attr, encryptor)|
+          encryptor_for(attr).logger.formatter = LogFormatter.new(self)
+        end
+      end
+
+      class LogFormatter < Logger::SimpleFormatter
+
+        attr_reader :record
+
+        def initialize(record)
+          @record = record
+        end
+
+        def call(severity, time, progname, msg)
+          msg = "#{severity.upcase} [#{Time.now}] #<#{record.class.name} id: #{record.id}> #{msg}"
+          super severity, time, progname, msg
+        end
+
       end
 
     end

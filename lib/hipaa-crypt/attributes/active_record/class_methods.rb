@@ -33,6 +33,11 @@ module HipaaCrypt
           end
         end
 
+        def define_encrypted_attr(attr, options)
+          options.reverse_merge logger: logger
+          super
+        end
+
         def prefix_unencrypted_methods_for_attr(*args)
         end
 
