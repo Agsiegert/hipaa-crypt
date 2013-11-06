@@ -28,6 +28,8 @@ module HipaaCrypt
         options[key]
       end
 
+      alias [] raw_value
+
       protected
 
       def normalize_object(object)

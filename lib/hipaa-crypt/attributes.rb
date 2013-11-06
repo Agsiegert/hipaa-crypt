@@ -1,136 +1,19 @@
 module HipaaCrypt
   module Attributes
 
-    autoload :ActiveRecord, 'hipaa-crypt/attributes/active_record'
+    autoload :Adapters, 'hipaa-crypt/attributes/adapters'
+    autoload :Memoization, 'hipaa-crypt/attributes/concerns/memoization'
+    autoload :AccessorHelpers, 'hipaa-crypt/attributes/concerns/accessor_helpers'
+    autoload :ReEncryption, 'hipaa-crypt/attributes/concerns/re_encryption'
+    autoload :ClassMethods, 'hipaa-crypt/attributes/class_methods'
+
+    include Memoization
+    include AccessorHelpers
+    include ReEncryption
 
     def self.included(base)
       base.extend(ClassMethods)
-      base.send :include, ActiveRecord if defined?(::ActiveRecord::Base) && base <= ::ActiveRecord::Base
-    end
-
-    module ClassMethods
-
-      def attribute_encrypted?(attr)
-        !!encrypted_attributes[attr.to_sym]
-      end
-
-      def encrypt(*attrs)
-        options = attrs.last.is_a?(Hash) ? attrs.pop : {}
-        attrs.each { |attr| define_encrypted_attr attr, options }
-      end
-
-      def encryptor_for(attr)
-        encrypted_attributes[attr.to_sym]
-      end
-
-      def encrypted_attributes
-        @encrypted_attributes ||= {}
-        superclass.respond_to?(__method__) ?
-          superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
-      end
-
-      def set_encrypted_attribute(attr, encryptor)
-        @encrypted_attributes       ||= {}
-        @encrypted_attributes[attr] = encryptor
-      end
-
-      private
-
-      def define_encrypted_attr(attr, options)
-        options[:attribute] = attr
-        encryptor           = options.delete(:encryptor) { Encryptor }
-        prefix              = options[:prefix] ||= :encrypted_
-        set_encrypted_attribute attr, encryptor.new(options)
-
-        define_unencrypted_methods_for_attr attr
-        prefix_unencrypted_methods_for_attr prefix, attr
-
-        if options[:iv].is_a?(Symbol) && setter_defined?(options[:iv])
-          define_encrypted_methods_for_attr_with_settable_iv attr, prefix, options[:iv]
-        elsif options.has_key? :iv
-          define_encrypted_methods_for_attr_with_iv attr, prefix
-        else
-          define_encrypted_methods_for_attr attr, prefix
-        end
-
-        attr
-      end
-
-      def define_encrypted_methods_for_attr(attr, prefix)
-        define_encrypted_attr_getter(attr) do
-          encrypted_attribute(attr) do
-            enc_val = public_send "#{prefix}#{attr}"
-            return enc_val if enc_val.nil? || enc_val.empty?
-            iv, value = enc_val.split("\n", 2)
-            encryptor_for(attr).decrypt value, iv
-          end
-        end
-
-        define_encrypted_attr_setter(attr) do |value|
-          value, iv = value.nil? ? nil : encryptor_for(attr).encrypt(value)
-          public_send "#{prefix}#{attr}=", value ? [iv, value].join("\n") : nil
-          encrypted_attributes.delete(attr)
-          value
-        end
-      end
-
-      def define_encrypted_methods_for_attr_with_iv(attr, prefix)
-        define_encrypted_attr_getter(attr) do
-          encrypted_attribute(attr) do
-            enc_val = public_send "#{prefix}#{attr}"
-            return enc_val if enc_val.nil? || enc_val.empty?
-            encryptor_for(attr).decrypt enc_val
-          end
-        end
-
-        define_encrypted_attr_setter(attr) do |value|
-          string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
-          public_send "#{prefix}#{attr}=", string
-          encrypted_attributes.delete(attr)
-          value
-        end
-      end
-
-      def define_encrypted_methods_for_attr_with_settable_iv(attr, prefix, iv_method)
-        define_encrypted_attr_getter(attr) do
-          encrypted_attribute(attr) do
-            enc_val = public_send "#{prefix}#{attr}"
-            return enc_val if enc_val.nil? || enc_val.empty?
-            encryptor_for(attr).decrypt enc_val, public_send(iv_method)
-          end
-        end
-
-        define_encrypted_attr_setter(attr) do |value|
-          string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
-          public_send "#{iv_method}=", iv
-          public_send "#{prefix}#{attr}=", string
-          encrypted_attributes.delete(attr)
-          value
-        end
-      end
-
-      def define_encrypted_attr_getter(attr, &block)
-        define_method "#{attr}", &block
-      end
-
-      def define_encrypted_attr_setter(attr, &block)
-        define_method "#{attr}=", &block
-      end
-
-      def define_unencrypted_methods_for_attr(attr)
-        attr_reader attr unless method_defined?("#{attr}")
-        attr_writer attr unless method_defined?("#{attr}=")
-      end
-
-      def prefix_unencrypted_methods_for_attr(prefix, attr)
-        alias_method "#{prefix}#{attr}", "#{attr}" unless method_defined? "#{prefix}#{attr}"
-        alias_method "#{prefix}#{attr}=", "#{attr}=" unless method_defined? "#{prefix}#{attr}="
-      end
-
-      def setter_defined?(method)
-        method_defined?("#{method}=".to_sym)
-      end
-
+      base.send :include, Adapters::ActiveRecord if defined?(::ActiveRecord::Base) && base <= ::ActiveRecord::Base
     end
 
     # Instance Methods
@@ -139,39 +22,6 @@ module HipaaCrypt
       @encryptors           = nil
       @encrypted_attributes = nil
       super
-    end
-
-    def re_encrypt(*attrs)
-      re_encrypt!(*attrs)
-    rescue
-      false
-    end
-
-    def re_encrypt!(*attrs)
-      options         = attrs.last.is_a?(Hash) ? attrs.pop : {}
-      cloned_instance = self.clone
-      attrs.each do |attr|
-        # Duplicate the instance and give it the old encryptor
-        current_encryptor_for_attr = encryptor_for(attr)
-        options[:encryptor]        ||= current_encryptor_for_attr.class
-        old_encryptor_options      = deep_merge_options(current_encryptor_for_attr.options.options, options)
-        cloned_instance.singleton_class.encrypt(attr, old_encryptor_options)
-
-        # Decrypt the duplicated instance using the getter and
-        # re-encrypt the original instance using the setter
-        public_send "#{attr}=", cloned_instance.public_send(attr)
-
-        # Confirm we can read the new value
-        public_send "#{attr}"
-      end
-      true
-    end
-
-    private
-
-    def deep_merge_options(current_options, options_to_merge)
-      merger = ->(key, v1, v2) { Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
-      current_options.merge(options_to_merge, &merger)
     end
 
     def encryptor_for(attr)
@@ -184,14 +34,6 @@ module HipaaCrypt
 
     def encryptors
       @encryptors ||= {}
-    end
-
-    def encrypted_attributes
-      @encrypted_attributes ||= {}
-    end
-
-    def encrypted_attribute(attr, &block)
-      encrypted_attributes[attr] ||= (block.call if block_given?)
     end
 
   end
