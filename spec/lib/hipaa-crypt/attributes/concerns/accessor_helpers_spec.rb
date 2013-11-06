@@ -49,7 +49,12 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     end
 
     context 'when the attribute passed is not encrypted' do
-
+      it 'returns an ArgumentError' do
+        instance.test_method = 'test_value'
+        allow(instance).to receive(:encryptor_for).with(:test_method).and_return false
+        
+        expect{instance.send :read_encrypted_attr, :test_method}.to raise_error ArgumentError
+      end
     end
   end
 
