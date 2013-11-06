@@ -11,7 +11,7 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   end
 
   let(:instance) { model.new }
-  
+
   describe '#__get__' do
     context 'when an attribute is provided' do
       it 'returns the value of that attribute' do
@@ -35,7 +35,22 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   end
 
   describe '#read_encrypted_attr' do
-    pending
+    context 'when the attribute passed is encrypted' do
+      it 'returns the value of that attribute' do
+        options = { key: SecureRandom.hex }
+        encryptor = HipaaCrypt::Encryptor.new(options)
+        iv = SecureRandom.hex
+        value = 'attr_value'
+        encrypted_value = encryptor.encrypt(value, iv).first
+        instance.test_method = encrypted_value
+
+        expect(instance.send :read_encrypted_attr, encrypted_value). to eq value
+      end
+    end
+
+    context 'when the attribute passed is not encrypted' do
+
+    end
   end
 
   describe '#write_encrypted_attr' do
