@@ -10,19 +10,28 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     model.class_eval { attr_accessor :test_method }
   end
 
+  let(:instance) { model.new }
+  
   describe '#__get__' do
     context 'when an attribute is provided' do
       it 'returns the value of that attribute' do
-        instance = model.new
         instance.test_method = 'attr_value'
 
-        expect(instance.__get__(:test_method)).to eq 'attr_value'
+        expect(instance.__get__ :test_method).to eq 'attr_value'
       end
     end
   end
 
   describe '#__set__' do
-    pending
+    context 'when an attribute and value are provided' do
+      it 'sets the attribute value' do
+        instance.test_method = 'attr_value'
+        expect(instance.test_method).to eq 'attr_value'
+
+        instance.__set__ :test_method, 'set_value'
+        expect(instance.test_method).to eq 'set_value'
+      end
+    end
   end
 
   describe '#read_encrypted_attr' do
