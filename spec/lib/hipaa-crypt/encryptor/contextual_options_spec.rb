@@ -56,7 +56,7 @@ describe HipaaCrypt::Encryptor::ContextualOptions do
     context 'when a context is not present' do
       it 'should raise an error' do
         options.instance_variable_set(:@context, nil)
-        expect { options.context }.to raise_error ArgumentError
+        expect { options.context }.to raise_error HipaaCrypt::Encryptor::ContextMissing
       end
     end
   end

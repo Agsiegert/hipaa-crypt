@@ -29,12 +29,11 @@ module HipaaCrypt
       private
 
       def define_encrypted_attr(attr, options)
-        options                       = options.dup
-        encryptor_klass               = options.delete(:encryptor) { Encryptor }
-        options[:attribute]           = attr
-        options[:prefix]              ||= :encrypted_
-        options[:suffix]              ||= nil
-        options[:encrypted_attribute] ||= options.values_at(:prefix, :attribute, :suffix).compact.join
+        options             = options.dup
+        encryptor_klass     = options.delete(:encryptor) { Encryptor }
+        options[:prefix]    ||= :encrypted_
+        options[:suffix]    ||= nil
+        options[:attribute] ||= [options[:prefix], attr, options[:suffix]].compact.join
 
         set_encrypted_attribute attr, encryptor_klass.new(options)
 
@@ -117,7 +116,7 @@ module HipaaCrypt
 
       def alias_unencrypted_methods_for_attr(attr)
         if (enc = encryptor_for(attr))
-          enc_attr = enc.options[:encrypted_attribute]
+          enc_attr = enc.options[:attribute]
           alias_method "#{enc_attr}", "#{attr}" unless method_defined? "#{enc_attr}"
           alias_method "#{enc_attr}=", "#{attr}=" unless method_defined? "#{enc_attr}="
         end

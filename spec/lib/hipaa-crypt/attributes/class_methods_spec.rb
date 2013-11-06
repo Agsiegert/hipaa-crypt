@@ -110,7 +110,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
     context 'defined methods' do
 
       let(:options) do
-        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, encrypted_attribute: :encrypted_foo
+        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo
       end
       let(:instance) { model.new }
       let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
@@ -138,7 +138,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
         end
 
         it 'should be able to decrypt a value set by the setter' do
-          encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, attribute: :foo, encrypted_attribute: :encrypted_foo
+          encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
           allow(instance).to receive(:encryptor_for).and_return encryptor
           instance.foo = "bar"
           expect { instance.foo }.to_not raise_error
@@ -165,7 +165,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
       end
 
       it 'should be able to encrypt a value' do
-        encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, attribute: :foo, encrypted_attribute: :encrypted_foo
+        encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
         allow(instance).to receive(:encryptor_for).and_return encryptor
         expect { instance.foo = "bar" }.to_not raise_error
       end
@@ -194,7 +194,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
     context 'defined methods' do
 
       let(:options) do
-        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, encrypted_attribute: :encrypted_foo
+        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo
       end
       let(:instance) { model.new }
       let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
@@ -222,7 +222,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
         end
 
         it 'should be able to decrypt a value set by the setter' do
-          encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, iv: SecureRandom.hex, attribute: :foo, encrypted_attribute: :encrypted_foo
+          encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, iv: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
           allow(instance).to receive(:encryptor_for).and_return encryptor
           instance.foo = "bar"
           expect { instance.foo }.to_not raise_error
@@ -244,7 +244,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
       end
 
       it 'should be able to encrypt a value' do
-        encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, iv: SecureRandom.hex, attribute: :foo, encrypted_attribute: :encrypted_foo
+        encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, iv: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
         allow(instance).to receive(:encryptor_for).and_return encryptor
         expect { instance.foo = "bar" }.to_not raise_error
       end
@@ -273,7 +273,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
     context 'defined methods' do
 
       let(:options) do
-        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, encrypted_attribute: :encrypted_foo, iv: :foo_iv
+        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo, iv: :foo_iv
       end
       let(:instance) { model.new }
       let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
@@ -303,7 +303,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
 
         it 'should be able to decrypt a value set by the setter' do
           encryptor = HipaaCrypt::Encryptor.new(
-            key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, encrypted_attribute: :encrypted_foo
+            key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, attribute: :encrypted_foo
           ).with_context(instance)
           allow(instance).to receive(:encryptor_for).and_return(encryptor)
           instance.foo = "bar"
@@ -319,7 +319,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
 
         it 'should set the iv if nil' do
           encryptor = HipaaCrypt::Encryptor.new(
-            key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, encrypted_attribute: :encrypted_foo
+            key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, attribute: :encrypted_foo
           ).with_context(instance)
           allow(instance).to receive(:encryptor_for).and_return(encryptor)
           expect { instance.foo = 'bar' }.to change { instance.foo_iv }
@@ -335,7 +335,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
 
       it 'should be able to encrypt a value' do
         encryptor = HipaaCrypt::Encryptor.new(
-          key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, encrypted_attribute: :encrypted_foo
+          key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, attribute: :encrypted_foo
         ).with_context(instance)
         allow(instance).to receive(:encryptor_for).and_return(encryptor)
         expect { instance.foo = "bar" }.to_not raise_error
@@ -390,7 +390,7 @@ describe HipaaCrypt::Attributes::ClassMethods do
 
   describe '.alias_unencrypted_methods_for_attr' do
     let(:options) do
-      HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, encrypted_attribute: :foo_enc_attr
+      HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :foo_enc_attr
     end
     let(:instance) { model.new }
     let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }

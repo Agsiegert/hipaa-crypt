@@ -19,19 +19,19 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     def copy_encrypted_attrs(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:encrypted_attribute] }.each do |var|
+      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.each do |var|
         to.send "#{var}=", from.send(var)
       end
     end
 
     def encrypted_values_match?(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:encrypted_attribute] }.all? do |var|
+      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.all? do |var|
         from.send(var) == to.send(var)
       end
     end
 
     def decrypted_values_match?(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.all? do |var|
+      from.class.encrypted_attributes.keys.all? do |var|
         from.__get__(var) == to.__get__(var)
       end
     end

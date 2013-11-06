@@ -1,5 +1,8 @@
 module HipaaCrypt
   class Encryptor
+
+    ContextMissing = Class.new StandardError
+
     class ContextualOptions
 
       attr_reader :options
@@ -13,7 +16,7 @@ module HipaaCrypt
       end
 
       def context
-        @context || raise(ArgumentError, 'context not set')
+        @context || raise(ContextMissing, 'context not set')
       end
 
       def get(key, &block)

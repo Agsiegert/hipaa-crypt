@@ -12,6 +12,7 @@ module HipaaCrypt
         options         = attrs.last.is_a?(Hash) ? attrs.pop : {}
         cloned_instance = self.clone
         attrs.each do |attr|
+
           # Duplicate the instance and give it the old encryptor
           current_encryptor_for_attr = encryptor_for(attr)
           options[:encryptor]        ||= current_encryptor_for_attr.class

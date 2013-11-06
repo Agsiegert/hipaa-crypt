@@ -63,7 +63,7 @@ module HipaaCrypt
 
           def alias_unencrypted_methods_for_attr(attr)
             enc = encryptor_for(attr)
-            super unless enc && column_names.include?(enc.options[:encrypted_attribute].to_s)
+            super unless enc && column_names.include?(enc.options[:attribute].to_s)
           end
 
           def define_unencrypted_methods_for_attr(attr)
