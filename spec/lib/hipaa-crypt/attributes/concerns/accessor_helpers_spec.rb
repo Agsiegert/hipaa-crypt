@@ -6,8 +6,19 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     Class.new { include HipaaCrypt::Attributes }
   end
 
+  before(:each) do
+    model.class_eval { attr_accessor :test_method }
+  end
+
   describe '#__get__' do
-    pending
+    context 'when an attribute is provided' do
+      it 'returns the value of that attribute' do
+        instance = model.new
+        instance.test_method = 'attr_value'
+
+        expect(instance.__get__(:test_method)).to eq 'attr_value'
+      end
+    end
   end
 
   describe '#__set__' do
