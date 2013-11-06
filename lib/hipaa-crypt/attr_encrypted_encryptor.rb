@@ -10,7 +10,7 @@ module HipaaCrypt
       value_for_callbacks = (options.get(:marshal) ? (deserialize value) : value)
       Callbacks.new(options.raw_value :after_load).run value_for_callbacks
     rescue => e
-      logger.error "Decrypt Error (#{attribute}) => #{e.class}: #{e.message}"
+      logger.error "Decrypt Error => #{e.class}: #{e.message}"
       raise e
     end
 
@@ -22,7 +22,7 @@ module HipaaCrypt
       value = options.get(:encode) ? (encode encrypted_value) : encrypted_value
       [value, iv]
     rescue => e
-      logger.error "Encrypt Error (#{attribute}) => #{e.class}: #{e.message}"
+      logger.error "Encrypt Error => #{e.class}: #{e.message}"
       raise e
     end
 
