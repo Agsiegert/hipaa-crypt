@@ -110,7 +110,12 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   end
 
   describe '#iv_attribute_for' do
-    pending
+    it 'returns the iv for an encrypted attribute' do
+      encryptor = HipaaCrypt::Encryptor.new attribute: :encrypted_test_method, iv: :some_iv
+      allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
+
+      expect(instance.send :iv_attribute_for, :test_method).to eq :some_iv
+    end
   end
 
 end
