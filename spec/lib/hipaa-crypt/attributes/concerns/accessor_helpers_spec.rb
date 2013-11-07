@@ -37,23 +37,11 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   describe '#read_encrypted_attr' do
     context 'when the attribute passed is encrypted' do
       it 'returns the value of that attribute' do
-        options = { key: SecureRandom.hex }
-        encryptor = HipaaCrypt::Encryptor.new(options)
-        iv = SecureRandom.hex
-        value = 'attr_value'
-        encrypted_value = encryptor.encrypt(value, iv).first
-        instance.test_method = encrypted_value
-
-        expect(instance.send :read_encrypted_attr, encrypted_value). to eq value
-      end
-    end
-
-    context 'when the attribute passed is not encrypted' do
-      it 'returns an ArgumentError' do
-        instance.test_method = 'test_value'
-        allow(instance).to receive(:encryptor_for).with(:test_method).and_return false
-        
-        expect{instance.send :read_encrypted_attr, :test_method}.to raise_error ArgumentError
+        value = 'Foo bar baz'
+        encryptor = HipaaCrypt::Encryptor.new attribute: :encrypted_test_method
+        allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
+        expect(instance).to receive(:encrypted_test_method).and_return value
+        expect(instance.send :read_encrypted_attr, :test_method). to eq value
       end
     end
   end

@@ -14,7 +14,9 @@ module HipaaCrypt
       end
 
       def encryptor_for(attr)
-        encrypted_attributes[attr.to_sym]
+        encrypted_attributes[attr.to_sym].tap do |encryptor|
+          raise ArgumentError, "#{attr} is not encrypted" unless encryptor
+        end
       end
 
       def encrypted_attributes

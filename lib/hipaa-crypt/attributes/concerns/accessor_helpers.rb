@@ -34,8 +34,7 @@ module HipaaCrypt
       end
 
       def encrypted_attribute_for(attr)
-        raise ArgumentError, "#{attr} is not encrypted" unless (enc = encryptor_for(attr))
-        enc.options[:attribute]
+        encryptor_for(attr).options[:attribute]
       end
 
       def iv_attribute_for(attr)
