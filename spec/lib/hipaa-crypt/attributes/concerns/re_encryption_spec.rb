@@ -68,7 +68,7 @@ describe HipaaCrypt::Attributes::ReEncryption do
     context 'when :key is the only difference' do
       let(:new_options) { old_options.merge(key: SecureRandom.hex) }
       it 'should be able to re-encrypt using the new key' do
-        new_instance.re_encrypt(:foo, :bar, :baz, old_options)
+        new_instance.re_encrypt!(:foo, :bar, :baz, old_options)
 
         expect(encrypted_values_match? original_instance, new_instance).to be_false
         expect(decrypted_values_match? original_instance, new_instance).to be_true
@@ -78,7 +78,7 @@ describe HipaaCrypt::Attributes::ReEncryption do
     context 'when :key and :cipher are the only differences' do
       let(:new_options) { old_options.merge(key: SecureRandom.hex, cipher: { name: :AES, key_length: 192, mode: [:OFB, :CBC, :ECB].sample }) }
       it 'should be able to re-encrypt using the new key' do
-        new_instance.re_encrypt(:foo, :bar, :baz, old_options)
+        new_instance.re_encrypt!(:foo, :bar, :baz, old_options)
 
         expect(encrypted_values_match? original_instance, new_instance).to be_false
         expect(decrypted_values_match? original_instance, new_instance).to be_true

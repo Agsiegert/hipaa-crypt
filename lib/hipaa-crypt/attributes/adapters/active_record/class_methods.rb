@@ -1,8 +1,22 @@
+require 'active_support/core_ext/array/extract_options'
+
 module HipaaCrypt
   module Attributes
     module Adapters
       module ActiveRecord
         module ClassMethods
+
+          module CallbackSkipper
+            def save_without_callbacks
+              changed_attrs = changed.reduce({}) do |hash, attr|
+                hash.merge attr => read_attribute(attr)
+              end
+              changed_attrs.blank? || 1 == self.class.unscoped.where(self.class.primary_key => id).update_all(changed_attrs)
+            rescue => e
+              HipaaCrypt.logger.error "Re-Encrypt Error => #{e.class}: #{e.message}"
+              false
+            end
+          end
 
           [:re_encrypt, :re_encrypt!].each do |method|
             define_method method do |*args|
@@ -15,7 +29,8 @@ module HipaaCrypt
           def re_encrypt_in_batches(method, *args)
             success_count, fail_count = 0, 0
             find_each do |instance|
-              if instance.send(method, *args.dup) && instance.save!(validate: false)
+              instance.extend(CallbackSkipper)
+              if instance.send(method, *args.dup) && instance.save_without_callbacks
                 success_count += 1 and print_success
               else
                 fail_count += 1 and print_fail
@@ -36,12 +51,11 @@ module HipaaCrypt
           end
 
           def puts_counts(success_count, fail_count)
-            puts "Re-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records",
-                 "\e[0;31;49m#{fail_count}\e[0m Failed" unless HipaaCrypt.config.silent_re_encrypt
+            puts "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records \e[0;31;49m#{fail_count}\e[0m failed" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def re_encrypt_query_from_args(args)
-            options = args.last.is_a?(Hash) ? args.pop : {}
+            options = args.extract_options!
             ops     = { 'lt' => '<', 'gt' => '>' }
             options.select { |key, value| key =~ /_(lt|gt)/ }.reduce(relation) do |rel, (quop, value)|
               options.delete(quop)

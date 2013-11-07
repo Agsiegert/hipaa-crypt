@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "thor"
+  spec.add_dependency "activesupport", ">= 3.2.0"
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
@@ -37,8 +38,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "sqlite3"
 
   # For Testing Some ORMS
-  spec.add_development_dependency "activerecord"
-  spec.add_development_dependency "mongoid"
-  spec.add_development_dependency "datamapper"
+  spec.add_development_dependency "activerecord", ">= 3.2.0"
 
 end

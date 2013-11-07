@@ -1,3 +1,6 @@
+require 'active_support/rescuable'
+require 'active_support/concern'
+
 module HipaaCrypt
   module Attributes
 
@@ -11,9 +14,12 @@ module HipaaCrypt
     include AccessorHelpers
     include ReEncryption
 
-    def self.included(base)
-      base.extend(ClassMethods)
-      base.send :include, Adapters::ActiveRecord if defined?(::ActiveRecord::Base) && base <= ::ActiveRecord::Base
+    extend ActiveSupport::Concern
+
+    included do
+      include Adapters::ActiveRecord if defined?(::ActiveRecord::Base) && self <= ::ActiveRecord::Base
+      include ActiveSupport::Rescuable
+      rescue_from OpenSSL::Cipher::CipherError, with: :log_encryption_error
     end
 
     # Instance Methods
@@ -34,6 +40,15 @@ module HipaaCrypt
 
     def encryptors
       @encryptors ||= {}
+    end
+
+    def encryption_logger
+      @encryption_logger ||= HipaaCrypt.config.logger
+    end
+
+    def log_encryption_error(error)
+      logger.error error
+      raise error
     end
 
   end

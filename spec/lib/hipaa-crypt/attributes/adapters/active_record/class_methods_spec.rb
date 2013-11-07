@@ -27,17 +27,20 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
   end
 
   describe '.re_encrypt_in_batches' do
-    let(:mock_collection) { 5.times.map { double encrypt_method: true, save!: true } }
+    let(:mock_collection) { 5.times.map { model.create } }
     let(:args) { [:email, key: SecureRandom.hex, iv: SecureRandom.hex] }
 
     before(:each) do
       allow(model).to receive(:find_each) { |&block| mock_collection.each(&block) }
+      mock_collection.each do |mock_instance|
+        allow(mock_instance).to receive(:encrypt_method).and_return(true)
+      end
     end
 
     it 'should call each instance with the method and args' do
       mock_collection.each do |mock_instance|
         expect(mock_instance).to receive(:encrypt_method).with(*args).and_return(true)
-        expect(mock_instance).to receive(:save!).and_return(true)
+        expect(mock_instance).to receive(:save_without_callbacks).and_return(true)
       end
       model.re_encrypt_in_batches(:encrypt_method, *args)
     end
@@ -52,7 +55,7 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
       before(:each) { allow(mock_instance).to receive(:encrypt_method).and_return(false) }
 
       it 'should not call save' do
-        expect(mock_instance).to_not receive(:save!)
+        expect(mock_instance).to_not receive(:save_without_callbacks)
         model.re_encrypt_in_batches(:encrypt_method, *args)
       end
 
@@ -64,7 +67,7 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
 
     context 'when the item fails to save' do
       let(:mock_instance) { mock_collection.first }
-      before(:each) { allow(mock_instance).to receive(:save!).and_return(false) }
+      before(:each) { allow(mock_instance).to receive(:save_without_callbacks).and_return(false) }
       it 'should print fail' do
         expect(model).to receive(:print_fail)
         model.re_encrypt_in_batches(:encrypt_method, *args)
@@ -116,12 +119,11 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
     context 'when silent' do
       let(:success_count){ Random.rand(0..10000) }
       let(:fail_count){ Random.rand(0..10000) }
-      let(:messages) { ["Re-Encrypted \e[0;32;49m#{success_count}\e[0m #{model.name} records",
-                        "\e[0;31;49m#{fail_count}\e[0m Failed"] }
+      let(:message) { "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{model.name} records \e[0;31;49m#{fail_count}\e[0m failed" }
       context 'when not silent' do
         before { allow(HipaaCrypt.config).to receive(:silent_re_encrypt) { false } }
         it 'should call puts' do
-          expect(model).to receive(:puts).with *messages
+          expect(model).to receive(:puts).with message
           model.send(:puts_counts, success_count, fail_count)
         end
       end

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/extract_options'
+
 module HipaaCrypt
   module Attributes
     module ClassMethods
@@ -7,7 +9,7 @@ module HipaaCrypt
       end
 
       def encrypt(*attrs)
-        options = attrs.last.is_a?(Hash) ? attrs.pop : {}
+        options = attrs.extract_options!
         attrs.each { |attr| define_encrypted_attr attr, options }
       end
 
@@ -79,7 +81,7 @@ module HipaaCrypt
 
         define_encrypted_attr_setter(attr) do |value|
           string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
-          write_encrypted_attr attr, string
+          write_encrypted_attr attr, string ? string : nil
           value
         end
       end
@@ -96,7 +98,7 @@ module HipaaCrypt
         define_encrypted_attr_setter(attr) do |value|
           string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
           write_iv attr, iv
-          write_encrypted_attr attr, string
+          write_encrypted_attr attr, string ? string : nil
           value
         end
       end

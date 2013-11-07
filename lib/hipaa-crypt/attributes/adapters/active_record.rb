@@ -1,4 +1,5 @@
 require 'active_record'
+require 'active_support/concern'
 
 module HipaaCrypt
   module Attributes
@@ -8,9 +9,7 @@ module HipaaCrypt
         autoload :RelationAdditions, 'hipaa-crypt/attributes/adapters/active_record/relation_additions'
         autoload :ClassMethods, 'hipaa-crypt/attributes/adapters/active_record/class_methods'
 
-        def self.included(base)
-          base.extend(ClassMethods)
-        end
+        extend ActiveSupport::Concern
 
         def matches_conditions(conditions={})
           conditions.reduce(true) do |result, (attr, value)|
@@ -22,12 +21,9 @@ module HipaaCrypt
           instance_eval(&attr.to_sym) == value
         end
 
-        def encryptor_for(attr)
-          encryptors[attr] ||= begin
-            any_class(:encryptor_for, attr).with_context(self).tap do |encryptor|
-              logger           = encryptor.logger
-              logger.formatter = LogFormatter.new(self) if logger.respond_to?(:formatter=)
-            end
+        def encryption_logger
+          @encryption_logger ||= HipaaCrypt.config.logger.tap do |logger|
+            logger.formatter = LogFormatter.new(self)
           end
         end
 
