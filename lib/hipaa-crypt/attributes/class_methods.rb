@@ -5,7 +5,11 @@ module HipaaCrypt
     module ClassMethods
 
       def attribute_encrypted?(attr)
-        !!encrypted_attributes[attr.to_sym]
+        encryptor_for(attr)
+      rescue ArgumentError
+        false
+      else
+        true
       end
 
       def encrypt(*attrs)
