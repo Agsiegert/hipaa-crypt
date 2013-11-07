@@ -90,7 +90,15 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   end
 
   describe '#write_iv' do
-    pending
+    before(:each) do
+      encryptor = HipaaCrypt::Encryptor.new attribute: :test_method, iv: :some_iv
+      allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
+    end
+
+    it 'calls #__set__ with the iv and value' do
+      expect(instance).to receive(:__set__).with(:some_iv, :some_value)
+      instance.send :write_iv, :test_method, :some_value
+    end
   end
 
   describe '#encryptor_attribute_for' do
