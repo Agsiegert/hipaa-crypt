@@ -19,7 +19,7 @@ module HipaaCrypt
     included do
       include Adapters::ActiveRecord if defined?(::ActiveRecord::Base) && self <= ::ActiveRecord::Base
       include ActiveSupport::Rescuable
-      rescue_from OpenSSL::Cipher::CipherError, with: :log_encryption_error
+      rescue_from HipaaCrypt::Error, with: :log_encryption_error
     end
 
     # Instance Methods

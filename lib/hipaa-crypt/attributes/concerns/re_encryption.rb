@@ -37,7 +37,7 @@ module HipaaCrypt
 
       def decryptable?(attr)
         __get__ attr
-      rescue OpenSSL::Cipher::CipherError, TypeError
+      rescue => Error
         false
       end
 

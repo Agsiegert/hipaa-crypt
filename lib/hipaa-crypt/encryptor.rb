@@ -1,8 +1,12 @@
 require 'openssl/cipher'
+require 'active_support/rescuable'
 require 'logger'
 
 module HipaaCrypt
   class Encryptor
+    include ActiveSupport::Rescuable
+
+    rescue_from(Exception){ |error| Error.copy_and_raise error }
 
     autoload :ContextualOptions, 'hipaa-crypt/encryptor/contextual_options'
     attr_reader :options, :cipher
@@ -21,6 +25,8 @@ module HipaaCrypt
       setup_cipher __method__, iv
       value = cipher.update(decode string) + cipher.final
       Callbacks.new(options.raw_value :after_load).run deserialize value
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise(exception)
     end
 
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
@@ -29,10 +35,14 @@ module HipaaCrypt
       setup_cipher __method__, iv
       value = encode cipher.update(value) + cipher.final
       [value, iv]
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise(exception)
     end
 
     def key
       options.get(:key) { HipaaCrypt.config.key || raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise(exception)
     end
 
     def with_context(context)

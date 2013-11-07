@@ -8,6 +8,7 @@ module HipaaCrypt
   autoload :AttrEncryptedEncryptor, 'hipaa-crypt/attr_encrypted_encryptor'
   autoload :Attributes, 'hipaa-crypt/attributes'
   autoload :EncryptedObject, 'hipaa-crypt/encrypted_object'
+  autoload :Error, 'hipaa-crypt/error'
 
   def self.config(&block)
     (@config ||= Configuration.new).tap do |config|

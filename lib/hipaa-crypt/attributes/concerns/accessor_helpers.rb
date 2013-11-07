@@ -4,10 +4,14 @@ module HipaaCrypt
 
       def __get__(attr)
         public_send(attr)
+      rescue Exception => exception
+        rescue_with_handler(exception) || raise(exception)
       end
 
       def __set__(attr, value)
         public_send("#{attr}=", value)
+      rescue Exception => exception
+        rescue_with_handler(exception) || raise(exception)
       end
 
       private
@@ -22,11 +26,11 @@ module HipaaCrypt
       end
 
       def read_iv(attr)
-        public_send iv_attribute_for attr
+        __get__ iv_attribute_for(attr)
       end
 
       def write_iv(attr, value)
-        public_send("#{iv_attribute_for(attr)}=", value)
+        __set__ iv_attribute_for(attr), value
       end
 
       def encrypted_attribute_for(attr)
