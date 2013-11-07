@@ -55,11 +55,18 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
 
   describe '#write_encrypted_attr' do
     context 'when an attribute and a value are provided' do
-      it 'calls Memoization#__clear_memo__ with the attribute' do
+      before(:each) do
         encryptor = HipaaCrypt::Encryptor.new attribute: :test_method
         allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
+      end
 
+      it 'calls #__clear_memo__ with the attribute' do
         expect(instance).to receive(:__clear_memo__).with :test_method
+        instance.send :write_encrypted_attr, :test_method, :test_value
+      end
+
+      it 'calls #__set__ with the encrypted attribute and value' do
+        expect(instance).to receive(:__set__).with(:test_method, :test_value)
         instance.send :write_encrypted_attr, :test_method, :test_value
       end
     end
