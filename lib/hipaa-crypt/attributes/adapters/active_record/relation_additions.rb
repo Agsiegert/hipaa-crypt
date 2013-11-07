@@ -29,7 +29,7 @@ module HipaaCrypt
             opts.reduce(self) do |arel, (attr, value)|
               encryptor       = encryptor_for(attr)
               encrypted_value = encryptor.encrypt(value)
-              enc_attr        = [encryptor.options.raw_value(:prefix), attr].join
+              enc_attr        = encryptor.options[:attribute]
               arel.where(enc_attr => encrypted_value)
             end
           end
