@@ -39,9 +39,9 @@ class HipaaCrypt::Cli < Thor
   def options_to_hash(options)
     options.each_with_index.reduce({}) do |hash, (key, index)|
       hash_key = key.sub(/^--/, '').to_sym
-      value = options[index + 1]
+      value    = options[index + 1]
 
-      key_is_key = /^\-\-/ =~ key
+      key_is_key     = /^\-\-/ =~ key
       value_is_value = /^[^\-\-]/ =~ value
 
       if key_is_key && value_is_value

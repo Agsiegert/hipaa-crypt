@@ -63,7 +63,7 @@ describe HipaaCrypt::Callbacks do
   describe '#invoke_callback_on_context' do
     context 'when the callback is a symbol' do
       it 'should call #invoke_symbol_on_context' do
-        symbol = :foo
+        symbol  = :foo
         context = double
         expect(callbacks).to receive(:invoke_symbol_on_context).with(symbol, context)
         callbacks.send :invoke_callback_on_context, symbol, context
@@ -72,7 +72,7 @@ describe HipaaCrypt::Callbacks do
 
     context 'when the callback is a proc' do
       it 'should call #invoke_proc_on_context' do
-        proc = proc {}
+        proc    = proc {}
         context = double
         expect(callbacks).to receive(:invoke_proc_on_context).with(proc, context)
         callbacks.send :invoke_callback_on_context, proc, context
@@ -98,7 +98,7 @@ describe HipaaCrypt::Callbacks do
     it 'should call the with the context as an argument' do
       context = double
       expect(context).to receive(:foo)
-      callbacks.send(:invoke_proc_on_context, ->(obj){ obj.foo }, context)
+      callbacks.send(:invoke_proc_on_context, ->(obj) { obj.foo }, context)
     end
   end
 

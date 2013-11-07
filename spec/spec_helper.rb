@@ -15,10 +15,10 @@ end
 
 require 'hipaa-crypt'
 
-Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
+Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 
 HipaaCrypt.config do |c|
-  c.logger = Logger.new('/dev/null')
+  c.logger            = Logger.new('/dev/null')
   c.silent_re_encrypt = true
 end
 

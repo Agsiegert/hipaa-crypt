@@ -6,7 +6,7 @@ module HipaaCrypt
   class Encryptor
     include ActiveSupport::Rescuable
 
-    rescue_from(Exception){ |error| Error.copy_and_raise error }
+    rescue_from(Exception) { |error| Error.copy_and_raise error }
 
     autoload :ContextualOptions, 'hipaa-crypt/encryptor/contextual_options'
     attr_reader :options, :cipher

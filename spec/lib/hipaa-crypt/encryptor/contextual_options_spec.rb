@@ -64,7 +64,7 @@ describe HipaaCrypt::Encryptor::ContextualOptions do
   describe '#with_context' do
     it 'should duplicate the object and set a context on the new object' do
       context_double = double
-      new_options = options.with_context(context_double)
+      new_options    = options.with_context(context_double)
       new_options.object_id.should_not eq options.object_id
       new_options.context.should_not eq options.context
       new_options.context.should eq context_double
@@ -111,13 +111,13 @@ describe HipaaCrypt::Encryptor::ContextualOptions do
     context 'when it has an arity' do
       it 'should call the proc with the context as an argument' do
         expect(context).to receive(:say_what_foo)
-        options.send(:normalize_proc, ->(c){ c.say_what_foo })
+        options.send(:normalize_proc, ->(c) { c.say_what_foo })
       end
     end
 
     context 'when it does not have an arity' do
       it 'should call the proc without arguments' do
-        expect(options.send :normalize_proc, ->{ "hello world" }).to eq "hello world"
+        expect(options.send :normalize_proc, -> { "hello world" }).to eq "hello world"
       end
     end
   end

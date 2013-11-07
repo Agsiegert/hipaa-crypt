@@ -10,7 +10,7 @@ describe HipaaCrypt do
     context 'when a cipher is added' do
       it 'sets Configuration#chiper' do
         cipher = { name: 'XYZ', key_length: 256, mode: 'ABC' }
-        config = HipaaCrypt.config { |c| c.cipher =  cipher }
+        config = HipaaCrypt.config { |c| c.cipher = cipher }
 
         expect(config.cipher).to eq cipher
       end
@@ -28,7 +28,7 @@ describe HipaaCrypt do
 
     context 'when a key is added' do
       it 'sets Configuration#key' do
-        key = 'a secret key'
+        key    = 'a secret key'
         config = HipaaCrypt.config { |c| c.key = key }
 
         expect(config.key).to eq key

@@ -4,8 +4,8 @@ describe HipaaCrypt::Configuration do
 
   describe '#logger' do
     context 'when in a Rails environment' do
-      let(:rails_logger){ double }
-      before(:each){ stub_const('Rails', double(logger: rails_logger)) }
+      let(:rails_logger) { double }
+      before(:each) { stub_const('Rails', double(logger: rails_logger)) }
       it 'uses Rails.logger' do
         config = HipaaCrypt::Configuration.new
         expect(config.logger).to be_a rails_logger.class
@@ -13,7 +13,7 @@ describe HipaaCrypt::Configuration do
     end
 
     context 'when not in a rails environment' do
-      let(:fake_logger){ double }
+      let(:fake_logger) { double }
       it 'should use a std out logger' do
         config = HipaaCrypt::Configuration.new
         expect(Logger).to receive(:new).with(STDOUT).and_return(fake_logger)
@@ -33,8 +33,8 @@ describe HipaaCrypt::Configuration do
 
     context 'when a cipher is added' do
       it 'sets the  cipher' do
-        cipher = { name: :XYZ, key_length: 256, mode: :CBC }
-        config = HipaaCrypt::Configuration.new
+        cipher        = { name: :XYZ, key_length: 256, mode: :CBC }
+        config        = HipaaCrypt::Configuration.new
         config.cipher = cipher
         expect(config.cipher).to eq cipher
       end

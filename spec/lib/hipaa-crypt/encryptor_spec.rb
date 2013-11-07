@@ -130,7 +130,7 @@ describe HipaaCrypt::Encryptor do
 
   describe('#with_context') do
     it 'should return a new encryptor with options in context' do
-      context = double
+      context              = double
       contextual_encryptor = encryptor.with_context(context)
       contextual_encryptor.should_not eq encryptor
       contextual_encryptor.options.context.should eq context

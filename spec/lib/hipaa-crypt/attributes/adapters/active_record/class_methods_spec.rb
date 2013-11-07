@@ -117,8 +117,8 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
 
   describe '.puts_counts' do
     context 'when silent' do
-      let(:success_count){ Random.rand(0..10000) }
-      let(:fail_count){ Random.rand(0..10000) }
+      let(:success_count) { Random.rand(0..10000) }
+      let(:fail_count) { Random.rand(0..10000) }
       let(:message) { "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{model.name} records \e[0;31;49m#{fail_count}\e[0m failed" }
       context 'when not silent' do
         before { allow(HipaaCrypt.config).to receive(:silent_re_encrypt) { false } }

@@ -24,8 +24,8 @@ describe HipaaCrypt::AttrEncryptedEncryptor do
 
       it 'should call decode with an encrypted string' do
         expect(encryptor_with_encode).to receive(:decode)
-                             .with(encrypted_value_with_encode)
-                             .and_call_original
+                                         .with(encrypted_value_with_encode)
+                                         .and_call_original
         encryptor_with_encode.decrypt(encrypted_value_with_encode, iv)
       end
     end
