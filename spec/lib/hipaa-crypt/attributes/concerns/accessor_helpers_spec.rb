@@ -42,13 +42,13 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
         allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
         expect(instance).to receive(:test_method).and_return value
 
-        expect(instance.send :read_encrypted_attr, :test_method). to eq value
+        expect(instance.send :read_encrypted_attr, :test_method).to eq value
       end
     end
 
     context 'when the attribute passed is not encrypted' do
       it 'returns an ArgumentError' do
-        expect{instance.send :read_encrypted_attr, :test_method}.to raise_error ArgumentError
+        expect { instance.send :read_encrypted_attr, :test_method }.to raise_error ArgumentError
       end
     end
   end
@@ -73,7 +73,20 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   end
 
   describe '#read_iv' do
-    pending
+    before(:each) do
+      encryptor = HipaaCrypt::Encryptor.new attribute: :test_method, iv: :some_iv
+      allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
+    end
+
+    it 'calls #__get__ with the attribute' do
+      expect(instance).to receive(:__get__).with(:some_iv)
+      instance.send :read_iv, :test_method
+    end
+
+    it 'returns the iv' do
+      allow(instance).to receive(:some_iv).and_return :some_value
+      expect(instance.send :read_iv, :test_method).to eq :some_value
+    end
   end
 
   describe '#write_iv' do
