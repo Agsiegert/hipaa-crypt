@@ -9,9 +9,8 @@ module HipaaCrypt
       value      = cipher.update(encrypted_value) + cipher.final
       value_for_callbacks = (options.get(:marshal) ? (deserialize value) : value)
       Callbacks.new(options.raw_value :after_load).run value_for_callbacks
-    rescue => e
-      logger.error "Decrypt Error => #{e.class}: #{e.message}"
-      raise e
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise(exception)
     end
 
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
@@ -21,9 +20,8 @@ module HipaaCrypt
       encrypted_value = cipher.update(value) + cipher.final
       value = options.get(:encode) ? (encode encrypted_value) : encrypted_value
       [value, iv]
-    rescue => e
-      logger.error "Encrypt Error => #{e.class}: #{e.message}"
-      raise e
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise(exception)
     end
 
     private
