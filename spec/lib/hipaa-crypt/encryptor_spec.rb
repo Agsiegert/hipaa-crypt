@@ -123,7 +123,7 @@ describe HipaaCrypt::Encryptor do
     context 'when the options does not have a key' do
       let(:options) { {} }
       it 'should raise an ArgumentError' do
-        expect { encryptor.key }.to raise_error(ArgumentError)
+        expect { encryptor.key }.to raise_error(HipaaCrypt::Error.const_get(:ArgumentError, false))
       end
     end
   end
