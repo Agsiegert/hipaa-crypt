@@ -47,7 +47,7 @@ module HipaaCrypt
     end
 
     def log_encryption_error(error)
-      logger.error error
+      encryption_logger.error error
       raise error
     end
 
