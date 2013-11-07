@@ -6,16 +6,56 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     Class.new { include HipaaCrypt::Attributes }
   end
 
+  before(:each) do
+    model.class_eval { attr_accessor :test_method }
+  end
+
+  let(:instance) { model.new }
+
   describe '#__get__' do
-    pending
+    context 'when an attribute is provided' do
+      it 'returns the value of that attribute' do
+        instance.test_method = 'attr_value'
+
+        expect(instance.__get__ :test_method).to eq 'attr_value'
+      end
+    end
   end
 
   describe '#__set__' do
-    pending
+    context 'when an attribute and value are provided' do
+      it 'sets the attribute value' do
+        instance.test_method = 'attr_value'
+        expect(instance.test_method).to eq 'attr_value'
+
+        instance.__set__ :test_method, 'set_value'
+        expect(instance.test_method).to eq 'set_value'
+      end
+    end
   end
 
   describe '#read_encrypted_attr' do
-    pending
+    context 'when the attribute passed is encrypted' do
+      it 'returns the value of that attribute' do
+        options = { key: SecureRandom.hex }
+        encryptor = HipaaCrypt::Encryptor.new(options)
+        iv = SecureRandom.hex
+        value = 'attr_value'
+        encrypted_value = encryptor.encrypt(value, iv).first
+        instance.test_method = encrypted_value
+
+        expect(instance.send :read_encrypted_attr, encrypted_value). to eq value
+      end
+    end
+
+    context 'when the attribute passed is not encrypted' do
+      it 'returns an ArgumentError' do
+        instance.test_method = 'test_value'
+        allow(instance).to receive(:encryptor_for).with(:test_method).and_return false
+        
+        expect{instance.send :read_encrypted_attr, :test_method}.to raise_error ArgumentError
+      end
+    end
   end
 
   describe '#write_encrypted_attr' do
