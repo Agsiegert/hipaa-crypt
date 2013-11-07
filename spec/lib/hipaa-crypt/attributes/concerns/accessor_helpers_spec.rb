@@ -38,9 +38,9 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     context 'when the attribute passed is encrypted' do
       it 'returns the value of that attribute' do
         value = 'Foo bar baz'
-        encryptor = HipaaCrypt::Encryptor.new attribute: :test_method
+        encryptor = HipaaCrypt::Encryptor.new attribute: :encrypted_test_method
         allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
-        expect(instance).to receive(:test_method).and_return value
+        expect(instance).to receive(:encrypted_test_method).and_return value
 
         expect(instance.send :read_encrypted_attr, :test_method).to eq value
       end
@@ -102,7 +102,11 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
   end
 
   describe '#encryptor_attribute_for' do
-    pending
+    it 'returns the value of the encrypted attribute' do
+      encryptor = HipaaCrypt::Encryptor.new attribute: :encrypted_test_method
+      allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
+      expect(instance.send :encrypted_attribute_for, :test_method).to eq :encrypted_test_method
+    end
   end
 
   describe '#iv_attribute_for' do
