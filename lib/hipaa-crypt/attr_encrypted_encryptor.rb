@@ -27,12 +27,11 @@ module HipaaCrypt
     private
 
     def setup_cipher(mode, iv)
-      cipher.reset
-      cipher.send(mode)
       if iv.to_s.length > 0
-        cipher.key = key
-        cipher.iv  = iv
+        super(mode, iv)
       else
+        cipher.reset
+        cipher.send(mode)
         cipher.pkcs5_keyivgen(key)
       end
     end
