@@ -92,9 +92,9 @@ module HipaaCrypt
 
             def all_attributes_exists?(attribute_names)
               attr_names_with_enc = attribute_names.map do |attr|
-                if (encryptor = encryptor_for attr)
-                  prefix = encryptor.options.raw_value(:prefix)
-                  [prefix, attr].join
+                if attribute_encrypted?(attr)
+                  encryptor = encryptor_for attr
+                  encryptor.options.raw_value(:attribute)
                 else
                   attr
                 end
