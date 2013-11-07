@@ -27,6 +27,16 @@ module HipaaCrypt
           end
         end
 
+        def attributes
+          super.tap do |hash|
+            self.class.encrypted_attributes.each do |attr, encryptor|
+              hash.delete encryptor.options[:attribute].to_s
+              hash.delete encryptor.options[:attribute].to_sym
+              hash[attr.to_s] = __get__ attr
+            end
+          end
+        end
+
         class LogFormatter
 
           attr_reader :record
