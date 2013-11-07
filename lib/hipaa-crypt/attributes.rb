@@ -30,6 +30,10 @@ module HipaaCrypt
       super
     end
 
+    def attribute_encrypted?(attr)
+      any_class __method__, attr
+    end
+
     def encryptor_for(attr)
       encryptors[attr] ||= any_class(:encryptor_for, attr).with_context(self)
     end
