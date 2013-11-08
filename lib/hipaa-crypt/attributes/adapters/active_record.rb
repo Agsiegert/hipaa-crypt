@@ -8,17 +8,16 @@ module HipaaCrypt
 
         autoload :RelationAdditions, 'hipaa-crypt/attributes/adapters/active_record/relation_additions'
         autoload :ClassMethods, 'hipaa-crypt/attributes/adapters/active_record/class_methods'
+        autoload :LogFormatter, 'hipaa-crypt/attributes/adapters/active_record/log_formatter'
+        autoload :Matchers, 'hipaa-crypt/attributes/adapters/active_record/matchers'
+        autoload :CallbackSkipper, 'hipaa-crypt/attributes/adapters/active_record/callback_skipper'
+        autoload :ReEncryptionClassMethods, 'hipaa-crypt/attributes/adapters/active_record/re_encryption'
 
         extend ActiveSupport::Concern
+        include Matchers
 
-        def matches_conditions(conditions={})
-          conditions.reduce(true) do |result, (attr, value)|
-            result && matches_condition(attr, value)
-          end
-        end
-
-        def matches_condition(attr, value)
-          instance_eval(&attr.to_sym) == value
+        included do
+          extend ReEncryptionClassMethods
         end
 
         def encryption_logger
@@ -37,18 +36,9 @@ module HipaaCrypt
           end
         end
 
-        class LogFormatter
-
-          attr_reader :record
-
-          def initialize(record)
-            @record = record
-          end
-
-          def call(severity, time, progname, msg)
-            "#{severity.upcase} [#{time}] #<#{record.class.name} id: #{record.id}> #{msg}\n"
-          end
-
+        def __set__(attr, value)
+          send "#{attr}_will_change!" if respond_to?("#{attr}_will_change!") && value != __get__(attr)
+          super
         end
 
       end
