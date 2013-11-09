@@ -11,6 +11,19 @@ module HipaaCrypt
           end
 
           def matches_condition(attr, value)
+            case value
+            when Regexp
+              match_using_regexp(attr, value)
+            else
+              match_using_equality(attr, value)
+            end
+          end
+
+          def match_using_regexp(attr, value)
+            instance_eval(&attr.to_sym) =~ value
+          end
+
+          def match_using_equality(attr, value)
             instance_eval(&attr.to_sym) == value
           end
 
