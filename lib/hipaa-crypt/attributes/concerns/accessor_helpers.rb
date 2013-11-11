@@ -4,13 +4,19 @@ module HipaaCrypt
 
       def __get__(attr)
         public_send(attr)
-      rescue Exception => exception
+      rescue Error => exception
         rescue_with_handler(exception) || raise(exception)
+      end
+
+      def __fetch__(attr)
+        public_send(attr)
+      rescue Error
+        nil
       end
 
       def __set__(attr, value)
         public_send("#{attr}=", value)
-      rescue Exception => exception
+      rescue Error => exception
         rescue_with_handler(exception) || raise(exception)
       end
 
