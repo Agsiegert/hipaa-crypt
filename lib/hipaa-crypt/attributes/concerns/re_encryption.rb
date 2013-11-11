@@ -24,7 +24,7 @@ module HipaaCrypt
 
           # Decrypt the duplicated instance using the getter and
           # re-encrypt the original instance using the setter
-          unless decryptable?(attr) && __get__(attr) == cloned_instance.__get__(attr)
+          unless decryptable?(attr) && __fetch__(attr) == cloned_instance.__fetch__(attr)
             __set__ attr, cloned_instance.__get__(attr)
             # Confirm we can read the new value
             __get__ attr
@@ -36,7 +36,7 @@ module HipaaCrypt
       private
 
       def decryptable?(attr)
-        __get__ attr
+        public_send(attr)
       rescue Error
         false
       end
