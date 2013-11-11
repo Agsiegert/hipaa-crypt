@@ -61,27 +61,39 @@ module HipaaCrypt
 
       def define_encrypted_methods_for_attr(attr)
         define_encrypted_attr_getter(attr) do
-          __memoize__(attr) do
-            enc_val = read_encrypted_attr(attr)
-            return enc_val if enc_val.nil? || enc_val.empty?
-            iv, value = enc_val.split("\n", 2)
-            encryptor_for(attr).decrypt value, iv
+          begin
+            __memoize__(attr) do
+              enc_val = read_encrypted_attr(attr)
+              return enc_val if enc_val.nil? || enc_val.empty?
+              iv, value = enc_val.split("\n", 2)
+              encryptor_for(attr).decrypt value, iv
+            end
+          rescue Exception => exception
+            rescue_with_handler(exception) || raise(exception)
           end
         end
 
         define_encrypted_attr_setter(attr) do |value|
-          value, iv = value.nil? ? nil : encryptor_for(attr).encrypt(value)
-          write_encrypted_attr attr, value ? [iv, value].join("\n") : nil
-          value
+          begin
+            value, iv = value.nil? ? nil : encryptor_for(attr).encrypt(value)
+            write_encrypted_attr attr, value ? [iv, value].join("\n") : nil
+            value
+          rescue Exception => exception
+            rescue_with_handler(exception) || raise(exception)
+          end
         end
       end
 
       def define_encrypted_methods_for_attr_with_iv(attr)
         define_encrypted_attr_getter(attr) do
-          __memoize__(attr) do
-            enc_val = read_encrypted_attr(attr)
-            return enc_val if enc_val.nil? || enc_val.empty?
-            encryptor_for(attr).decrypt enc_val
+          begin
+            __memoize__(attr) do
+              enc_val = read_encrypted_attr(attr)
+              return enc_val if enc_val.nil? || enc_val.empty?
+              encryptor_for(attr).decrypt enc_val
+            end
+          rescue Exception => exception
+            rescue_with_handler(exception) || raise(exception)
           end
         end
 
@@ -94,18 +106,26 @@ module HipaaCrypt
 
       def define_encrypted_methods_for_attr_with_settable_iv(attr)
         define_encrypted_attr_getter(attr) do
-          __memoize__(attr) do
-            enc_val = read_encrypted_attr(attr)
-            return enc_val if enc_val.nil? || enc_val.empty?
-            encryptor_for(attr).decrypt enc_val, read_iv(attr)
+          begin
+            __memoize__(attr) do
+              enc_val = read_encrypted_attr(attr)
+              return enc_val if enc_val.nil? || enc_val.empty?
+              encryptor_for(attr).decrypt enc_val, read_iv(attr)
+            end
+          rescue Exception => exception
+            rescue_with_handler(exception) || raise(exception)
           end
         end
 
         define_encrypted_attr_setter(attr) do |value|
-          string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
-          write_iv attr, iv
-          write_encrypted_attr attr, string ? string : nil
-          value
+          begin
+            string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
+            write_iv attr, iv
+            write_encrypted_attr attr, string ? string : nil
+            value
+          rescue Exception => exception
+            rescue_with_handler(exception) || raise(exception)
+          end
         end
       end
 

@@ -4,20 +4,18 @@ module HipaaCrypt
 
       def __get__(attr)
         public_send(attr)
-      rescue Error => exception
-        rescue_with_handler(exception) || raise(exception)
       end
 
       def __fetch__(attr)
-        public_send(attr)
+        cloned_instance = self.clone
+        cloned_instance.extend Module.new { def encryption_logger() @encryption_logger ||= Logger.new('/dev/null') end }
+        cloned_instance.__get__ attr
       rescue Error
         nil
       end
 
       def __set__(attr, value)
         public_send("#{attr}=", value)
-      rescue Error => exception
-        rescue_with_handler(exception) || raise(exception)
       end
 
       private
