@@ -22,7 +22,7 @@ module HipaaCrypt
 
         def encryption_logger
           @encryption_logger ||= HipaaCrypt.config.logger.tap do |logger|
-            logger.formatter = LogFormatter.new(self)
+            logger.formatter = LogFormatter.new(self) if logger.respond_to? :formatter=
           end
         end
 
