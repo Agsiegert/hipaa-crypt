@@ -1,7 +1,7 @@
 PATH
   remote: .././
   specs:
-    hipaa-crypt (1.0.0.beta4)
+    hipaa-crypt (1.0.0.beta7)
       activesupport (>= 3.2.0)
       thor
 
