@@ -7,7 +7,7 @@ module HipaaCrypt
 
       def re_encrypt(*attrs)
         re_encrypt!(*attrs)
-      rescue OpenSSL::Cipher::CipherError
+      rescue Error
         false
       end
 
