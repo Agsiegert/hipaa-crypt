@@ -31,13 +31,13 @@ module HipaaCrypt
             self.class.encrypted_attributes.each do |attr, encryptor|
               hash.delete encryptor.options[:attribute].to_s
               hash.delete encryptor.options[:attribute].to_sym
-              hash[attr.to_s] = __get__ attr
+              hash[attr.to_s] = __enc_get__ attr
             end
           end
         end
 
-        def __set__(attr, value)
-          send "#{attr}_will_change!" if respond_to?("#{attr}_will_change!") && value != __get__(attr)
+        def __enc_set__(attr, value)
+          send "#{attr}_will_change!" if respond_to?("#{attr}_will_change!") && value != __enc_get__(attr)
           super
         end
 

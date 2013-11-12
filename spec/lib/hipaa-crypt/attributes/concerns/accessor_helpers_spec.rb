@@ -17,23 +17,20 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     allow(model).to receive(:encryptor_for).with(:test_method).and_return(encryptor)
   end
 
-  describe '#__get__' do
+  describe '#__enc_get__' do
     context 'when an attribute is provided' do
       it 'returns the value of that attribute' do
-        instance.test_method = 'attr_value'
-        expect(instance.__get__ :test_method).to eq 'attr_value'
+        expect(instance).to receive(:_decrypt_test_method).and_return 'attr_value'
+        expect(instance.__enc_get__ :test_method).to eq 'attr_value'
       end
     end
   end
 
-  describe '#__set__' do
+  describe '#__enc_set__' do
     context 'when an attribute and value are provided' do
       it 'sets the attribute value' do
-        instance.test_method = 'attr_value'
-        expect(instance.test_method).to eq 'attr_value'
-
-        instance.__set__ :test_method, 'set_value'
-        expect(instance.test_method).to eq 'set_value'
+        expect(instance).to receive(:_encrypt_test_method)
+        instance.__enc_set__(:test_method, 'set_value')
       end
     end
   end
@@ -69,7 +66,7 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
       end
 
       it 'calls #__set__ with the encrypted attribute and value' do
-        expect(instance).to receive(:__set__).with(:test_method, :test_value)
+        expect(instance).to receive(:test_method=).with(:test_value)
         instance.send :write_encrypted_attr, :test_method, :test_value
       end
     end
@@ -81,7 +78,7 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     end
 
     it 'calls #__get__ with the attribute' do
-      expect(instance).to receive(:__get__).with(:some_iv)
+      expect(instance).to receive(:some_iv)
       instance.send :read_iv, :test_method
     end
 
@@ -95,7 +92,7 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
 
     it 'calls #__set__ with the iv and value' do
       setup_encryptor
-      expect(instance).to receive(:__set__).with(:some_iv, :some_value)
+      expect(instance).to receive(:some_iv=).with(:some_value)
       instance.send :write_iv, :test_method, :some_value
     end
   end

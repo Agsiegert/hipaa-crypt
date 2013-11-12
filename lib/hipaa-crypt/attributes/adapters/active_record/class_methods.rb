@@ -7,7 +7,7 @@ module HipaaCrypt
         module ClassMethods
 
           def define_encrypted_attr(attr, options)
-            define_method("#{attr}?"){ !!__get__(attr) }
+            define_method("#{attr}?"){ !!__enc_get__(attr) }
             super
           end
 

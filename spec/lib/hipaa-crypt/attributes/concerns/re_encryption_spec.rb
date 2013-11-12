@@ -32,7 +32,7 @@ describe HipaaCrypt::Attributes::ReEncryption do
 
     def decrypted_values_match?(from, to)
       from.class.encrypted_attributes.keys.all? do |var|
-        from.__get__(var) == to.__get__(var)
+        from.__enc_get__(var) == to.__enc_get__(var)
       end
     end
 

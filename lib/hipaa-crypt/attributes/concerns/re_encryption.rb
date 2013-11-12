@@ -24,17 +24,17 @@ module HipaaCrypt
 
           # Decrypt the duplicated instance using the getter and
           # re-encrypt the original instance using the setter
-          unless decryptable?(attr) && (!cloned_instance.decryptable?(attr) || __fetch__(attr) == cloned_instance.__fetch__(attr))
-            __set__ attr, cloned_instance.__get__(attr)
+          unless decryptable?(attr) && (!cloned_instance.decryptable?(attr) || __enc_fetch__(attr) == cloned_instance.__enc_fetch__(attr))
+            __enc_set__ attr, cloned_instance.__enc_get__(attr)
             # Confirm we can read the new value
-            __get__ attr
+            __enc_get__ attr
           end
         end
         true
       end
 
       def decryptable?(attr)
-        !!__fetch__(attr)
+        !!__enc_fetch__(attr)
       end
 
     end
