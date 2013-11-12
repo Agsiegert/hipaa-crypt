@@ -130,11 +130,13 @@ module HipaaCrypt
       end
 
       def define_encrypted_attr_getter(attr, &block)
-        define_method "#{attr}", &block
+        define_method "_decrypt_#{attr}", &block
+        alias_method attr, "_decrypt_#{attr}"
       end
 
       def define_encrypted_attr_setter(attr, &block)
-        define_method "#{attr}=", &block
+        define_method "_encrypt_#{attr}", &block
+        alias_method "#{attr}=", "_encrypt_#{attr}"
       end
 
       def define_unencrypted_methods_for_attr(attr)
