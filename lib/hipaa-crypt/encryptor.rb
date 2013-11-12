@@ -22,27 +22,27 @@ module HipaaCrypt
     end
 
     def decrypt string, iv = options.get(:iv)
-      setup_cipher __method__, iv
-      value = cipher.update(decode string) + cipher.final
-      Callbacks.new(options.raw_value :after_load).run deserialize value
-    rescue Exception => exception
-      rescue_or_re_raise(exception)
+      with_rescue do
+        setup_cipher __method__, iv
+        value = cipher.update(decode string) + cipher.final
+        Callbacks.new(options.raw_value :after_load).run deserialize value
+      end
     end
 
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
-      iv    ||= generate_iv
-      value = serialize Callbacks.new(options.raw_value :before_encrypt).run value
-      setup_cipher __method__, iv
-      value = encode cipher.update(value) + cipher.final
-      [value, iv]
-    rescue Exception => exception
-      rescue_or_re_raise(exception)
+      with_rescue do
+        iv    ||= generate_iv
+        value = serialize Callbacks.new(options.raw_value :before_encrypt).run value
+        setup_cipher __method__, iv
+        value = encode cipher.update(value) + cipher.final
+        [value, iv]
+      end
     end
 
     def key
-      options.get(:key) { HipaaCrypt.config.key || raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
-    rescue Exception => exception
-      rescue_or_re_raise(exception)
+      with_rescue do
+        options.get(:key) { HipaaCrypt.config.key || raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
+      end
     end
 
     def with_context(context)
@@ -57,7 +57,9 @@ module HipaaCrypt
 
     private
 
-    def rescue_or_re_raise(exception)
+    def with_rescue(&block)
+      yield
+    rescue Exception => exception
       rescue_with_handler(exception) || raise(exception)
     end
 
