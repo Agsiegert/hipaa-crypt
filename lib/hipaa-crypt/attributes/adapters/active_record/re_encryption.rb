@@ -43,7 +43,7 @@ module HipaaCrypt
           def re_encrypt_query_from_args(args)
             options = args.extract_options!
             ops     = { 'lt' => '<', 'gt' => '>' }
-            options.select { |key, value| key =~ /_(lt|gt)/ }.reduce(relation) do |rel, (quop, value)|
+            options.select { |key, value| key =~ /_(lt|gt)/ }.reduce(unscoped) do |rel, (quop, value)|
               options.delete(quop)
               op, attr = quop.to_s.reverse.split('_', 2).map(&:reverse)
               rel.where "#{attr} #{ops[op]} ?", value
