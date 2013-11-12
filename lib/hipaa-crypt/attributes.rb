@@ -10,7 +10,6 @@ module HipaaCrypt
     autoload :ReEncryption, 'hipaa-crypt/attributes/concerns/re_encryption'
     autoload :ClassMethods, 'hipaa-crypt/attributes/class_methods'
 
-    include Memoization
     include AccessorHelpers
     include ReEncryption
 
@@ -18,6 +17,7 @@ module HipaaCrypt
 
     included do
       include Adapters::ActiveRecord if defined?(::ActiveRecord::Base) && self <= ::ActiveRecord::Base
+      include Memoization
       include ActiveSupport::Rescuable
       rescue_from HipaaCrypt::Error, with: :log_encryption_error
     end
@@ -53,6 +53,12 @@ module HipaaCrypt
     def log_encryption_error(error)
       encryption_logger.error error
       raise error
+    end
+
+    def with_rescue(&block)
+      yield
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise(exception)
     end
 
   end

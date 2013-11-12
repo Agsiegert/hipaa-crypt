@@ -62,12 +62,10 @@ module HipaaCrypt
       def define_encrypted_methods_for_attr(attr)
         define_encrypted_attr_getter(attr) do
           with_rescue do
-            __memoize__(attr) do
-              enc_val = read_encrypted_attr(attr)
-              return enc_val if enc_val.nil? || enc_val.empty?
-              iv, value = enc_val.split("\n", 2)
-              encryptor_for(attr).decrypt value, iv
-            end
+            enc_val = read_encrypted_attr(attr)
+            return enc_val if enc_val.nil? || enc_val.empty?
+            iv, value = enc_val.split("\n", 2)
+            encryptor_for(attr).decrypt value, iv
           end
         end
 
@@ -83,11 +81,9 @@ module HipaaCrypt
       def define_encrypted_methods_for_attr_with_iv(attr)
         define_encrypted_attr_getter(attr) do
           with_rescue do
-            __memoize__(attr) do
-              enc_val = read_encrypted_attr(attr)
-              return enc_val if enc_val.nil? || enc_val.empty?
-              encryptor_for(attr).decrypt enc_val
-            end
+            enc_val = read_encrypted_attr(attr)
+            return enc_val if enc_val.nil? || enc_val.empty?
+            encryptor_for(attr).decrypt enc_val
           end
         end
 
@@ -101,11 +97,9 @@ module HipaaCrypt
       def define_encrypted_methods_for_attr_with_settable_iv(attr)
         define_encrypted_attr_getter(attr) do
           with_rescue do
-            __memoize__(attr) do
-              enc_val = read_encrypted_attr(attr)
-              return enc_val if enc_val.nil? || enc_val.empty?
-              encryptor_for(attr).decrypt enc_val, read_iv(attr)
-            end
+            enc_val = read_encrypted_attr(attr)
+            return enc_val if enc_val.nil? || enc_val.empty?
+            encryptor_for(attr).decrypt enc_val, read_iv(attr)
           end
         end
 
@@ -121,6 +115,7 @@ module HipaaCrypt
 
       def define_encrypted_attr_getter(attr, &block)
         define_method "_decrypt_#{attr}", &block
+        __memoize_method__("_decrypt_#{attr}")
         alias_method attr, "_decrypt_#{attr}"
       end
 
@@ -144,12 +139,6 @@ module HipaaCrypt
 
       def setter_defined?(method)
         method_defined?("#{method}=".to_sym)
-      end
-
-      def with_rescue(&block)
-        yield
-      rescue Exception => exception
-        rescue_with_handler(exception) || raise(exception)
       end
 
     end
