@@ -36,9 +36,7 @@ module HipaaCrypt
       private
 
       def decryptable?(attr)
-        public_send(attr)
-      rescue Error
-        false
+        !!__fetch__(attr)
       end
 
     end
