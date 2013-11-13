@@ -13,6 +13,7 @@ module HipaaCrypt
           end
 
           def re_encrypt_in_batches(method, *args)
+            puts_current_model
             success_count, fail_count = 0, 0
             find_each do |instance|
               instance.extend(CallbackSkipper)
@@ -28,6 +29,10 @@ module HipaaCrypt
 
           private
 
+          def puts_current_model
+            puts "\nStarting re-encryption of #{count} #{name} records\n"
+          end
+
           def print_fail
             print "\e[0;31;49mF\e[0m" unless HipaaCrypt.config.silent_re_encrypt
           end
@@ -37,7 +42,7 @@ module HipaaCrypt
           end
 
           def puts_counts(success_count, fail_count)
-            puts "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records \e[0;31;49m#{fail_count}\e[0m failed" unless HipaaCrypt.config.silent_re_encrypt
+            puts "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records \e[0;31;49m#{fail_count}\e[0m fail\n" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def re_encrypt_query_from_args(args)
