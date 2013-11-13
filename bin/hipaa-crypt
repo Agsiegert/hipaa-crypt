@@ -3,6 +3,7 @@
 require 'hipaa-crypt'
 require 'thor'
 require 'pry'
+require 'active_support/core_ext/object/blank'
 
 class HipaaCrypt::Cli < Thor
 
@@ -16,6 +17,7 @@ class HipaaCrypt::Cli < Thor
   desc 're_encrypt MODEL', 're_encrypt a models attributes'
 
   def re_encrypt(*args)
+    check_for_rails!
     if options.delete :all
       re_encrypt_all(*args)
     else
@@ -25,12 +27,27 @@ class HipaaCrypt::Cli < Thor
 
   private
 
+  def all_rails_models
+    check_for_rails!
+    Rails.application.eager_load!
+    models = ObjectSpace.each_object.select do |obj|
+      obj.is_a?(Class) && obj <= HipaaCrypt::Attributes && obj.respond_to?(:re_encrypt)
+    end
+    models.sort_by { |model| model.respond_to?(:count) ? model.count : nil }
+  end
+
+  def check_for_rails!
+    raise Exception, 're-encryption is only available in Rails at this time.' unless defined? Rails
+  end
+
   def re_encrypt_one(model, *attrs)
+    attrs = model.encrypted_attributes.keys unless attrs.present?
     attrs.map!(&:to_sym)
     try_eval(model).re_encrypt(*attrs, options)
   end
 
   def re_encrypt_all(*models)
+    models = all_rails_models unless models.present?
     models.map { |string| try_eval string }.each do |model|
       model.re_encrypt *model.encrypted_attributes.keys, options
     end
