@@ -30,7 +30,7 @@ module HipaaCrypt
           private
 
           def puts_current_model
-            puts "\nStarting re-encryption of #{count} #{name} records\n"
+            puts "\nStarting re-encryption of #{count} #{name} records\n" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def print_fail
@@ -42,7 +42,7 @@ module HipaaCrypt
           end
 
           def puts_counts(success_count, fail_count)
-            puts "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records \e[0;31;49m#{fail_count}\e[0m fail\n" unless HipaaCrypt.config.silent_re_encrypt
+            puts "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records \e[0;31;49m#{fail_count}\e[0m failed\n" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def re_encrypt_query_from_args(args)
