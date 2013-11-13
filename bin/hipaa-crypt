@@ -7,8 +7,6 @@ require 'active_support/core_ext/object/blank'
 
 class HipaaCrypt::Cli < Thor
 
-  require File.expand_path 'config/environment' if File.exists? File.expand_path 'config/environment.rb'
-
   def initialize(args=[], options={}, config={})
     super(args, {}, config)
     self.options = options_to_hash(options)
@@ -17,6 +15,7 @@ class HipaaCrypt::Cli < Thor
   desc 're_encrypt MODEL', 're_encrypt a models attributes'
 
   def re_encrypt(*args)
+    load_rails!
     check_for_rails!
     if options.delete :all
       re_encrypt_all(*args)
@@ -25,7 +24,18 @@ class HipaaCrypt::Cli < Thor
     end
   end
 
+  desc 'version', 'print out the version'
+  def default
+    puts "HipaaCrypt #{HipaaCrypt::VERSION}" if options[:version] || options[:v]
+  end
+
+  default_task :default
+
   private
+
+  def load_rails!
+    require File.expand_path 'config/environment' if File.exists? File.expand_path 'config/environment.rb'
+  end
 
   def all_rails_models
     check_for_rails!
@@ -55,11 +65,11 @@ class HipaaCrypt::Cli < Thor
 
   def options_to_hash(options)
     options.each_with_index.reduce({}) do |hash, (key, index)|
-      hash_key = key.sub(/^--/, '').to_sym
+      hash_key = key.sub(/^\-{1,2}/, '').to_sym
       value    = options[index + 1]
 
-      key_is_key     = /^\-\-/ =~ key
-      value_is_value = /^[^\-\-]/ =~ value
+      key_is_key     = /^\-{1,2}?/ =~ key
+      value_is_value = /^[^\-]/ =~ value
 
       if key_is_key && value_is_value
         hash[hash_key] = try_eval value
