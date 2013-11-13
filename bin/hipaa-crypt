@@ -72,7 +72,7 @@ class HipaaCrypt::Cli < Thor
 
   def try_eval(string)
     eval(string)
-  rescue => e
+  rescue Exception => e
     string
   end
 end
