@@ -25,7 +25,6 @@ module HipaaCrypt
       end
 
       def write_encrypted_attr(attr, value)
-        __clear_memo__ attr
         public_send "#{encrypted_attribute_for(attr)}=", value
       end
 

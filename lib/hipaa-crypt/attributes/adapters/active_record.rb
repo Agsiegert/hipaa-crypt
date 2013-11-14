@@ -41,6 +41,22 @@ module HipaaCrypt
           super
         end
 
+        def write_attribute(attr, value)
+          if attribute_encrypted?(attr)
+            __enc_set__(attr, value)
+          else
+            super(attr, value)
+          end
+        end
+
+        def read_attribute(attr)
+          if attribute_encrypted?(attr)
+            __enc_get__(attr)
+          else
+            super(attr)
+          end
+        end
+
       end
     end
   end

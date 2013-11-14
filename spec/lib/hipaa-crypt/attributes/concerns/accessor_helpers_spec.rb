@@ -61,7 +61,6 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
       end
 
       it 'calls #__clear_memo__ with the attribute' do
-        expect(instance).to receive(:__clear_memo__).with :test_method
         instance.send :write_encrypted_attr, :test_method, :test_value
       end
 

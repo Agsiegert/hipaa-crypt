@@ -121,6 +121,7 @@ module HipaaCrypt
 
       def define_encrypted_attr_setter(attr, &block)
         define_method "_encrypt_#{attr}", &block
+        __clear_memoize_method__ "_decrypt_#{attr}", with: "_encrypt_#{attr}"
         alias_method "#{attr}=", "_encrypt_#{attr}"
       end
 

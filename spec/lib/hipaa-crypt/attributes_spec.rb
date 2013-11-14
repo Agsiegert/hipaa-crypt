@@ -24,6 +24,15 @@ describe HipaaCrypt::Attributes do
         instance.foo = 'bar'
         instance.foo.should eq 'bar'
       end
+
+      it 'should be able to successfully change a value' do
+        instance.foo = 'bar'
+        instance.foo.should eq 'bar'
+        instance.foo = 'baz'
+        instance.foo.should eq 'baz'
+        instance.foo = 'raz'
+        instance.foo.should eq 'raz'
+      end
     end
 
     context 'with a static iv' do
