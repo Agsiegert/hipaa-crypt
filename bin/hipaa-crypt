@@ -2,7 +2,6 @@
 
 require 'hipaa-crypt'
 require 'thor'
-require 'pry'
 require 'active_support/core_ext/object/blank'
 
 class HipaaCrypt::Cli < Thor
