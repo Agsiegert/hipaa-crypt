@@ -91,8 +91,13 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord do
       end
 
       context 'when logger does not respond to #formatter=' do
-        xit 'does not set the formatter' do
+        it 'does not set the formatter' do
+          logger = double
+          allow(HipaaCrypt.config).to receive(:logger).and_return logger
+          allow(logger).to receive(:respond_to?).with(:formatter=).and_return false
 
+          expect(logger).to_not receive :formatter=
+          record.encryption_logger
         end
       end
     end
