@@ -76,6 +76,32 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord do
       end
     end
 
+    describe '#encryption_logger' do
+      context 'when logger responds to #formatter=' do
+        it 'returns a logger object' do
+          expect(record.encryption_logger).to be_kind_of Logger
+        end
+
+        it 'does sets the formatter' do
+          logger = double
+          allow(HipaaCrypt.config).to receive(:logger).and_return logger
+          expect(logger).to receive :formatter=
+          record.encryption_logger
+        end
+      end
+
+      context 'when logger does not respond to #formatter=' do
+        it 'does not set the formatter' do
+          logger = double
+          allow(HipaaCrypt.config).to receive(:logger).and_return logger
+          allow(logger).to receive(:respond_to?).with(:formatter=).and_return false
+
+          expect(logger).to_not receive :formatter=
+          record.encryption_logger
+        end
+      end
+    end
+
   end
 
 end
