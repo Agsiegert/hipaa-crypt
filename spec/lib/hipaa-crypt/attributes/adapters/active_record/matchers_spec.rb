@@ -12,5 +12,12 @@ describe  HipaaCrypt::Attributes::Adapters::ActiveRecord::Matchers do
         record.matches_condition( :attr, /[abc]/ )
       end
     end
+
+    context 'when the value type is not Regexp' do
+      it 'calls #match_using_equality' do
+        expect(record).to receive(:match_using_equality).with(:attr, :value)
+        record.matches_condition( :attr, :value )
+      end
+    end
   end
 end
