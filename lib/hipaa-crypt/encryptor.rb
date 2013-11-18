@@ -14,6 +14,7 @@ module HipaaCrypt
     def initialize(options={})
       options     = options.dup
       self.cipher = options.fetch :cipher, HipaaCrypt.config.cipher
+      options[:key] ||= HipaaCrypt.config.key
       @options    = ContextualOptions.new(options)
     end
 
@@ -41,7 +42,7 @@ module HipaaCrypt
 
     def key
       with_rescue do
-        options.get(:key) { HipaaCrypt.config.key || raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
+        options.get(:key) { raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
       end
     end
 

@@ -19,7 +19,7 @@ module HipaaCrypt
           def encrypted_where(opts)
             grouped_opts = opts.group_by do |attr, v|
               opts = encryptor_for(attr).options
-              opts.raw_value(:iv).is_a?(String) && opts.raw_value(:key).is_a?(String) ? :static : :dynamic
+              opts[:iv].is_a?(String) && opts[:key].is_a?(String) ? :static : :dynamic
             end
             static_key_iv_where(grouped_opts[:static]).load_and_decrypt_where(grouped_opts[:dynamic])
           end
@@ -27,9 +27,8 @@ module HipaaCrypt
           def static_key_iv_where(opts)
             return self unless opts.present?
             opts.reduce(self) do |arel, (attr, value)|
-              encryptor       = encryptor_for(attr)
-              encrypted_value = encryptor.encrypt(value)
-              enc_attr        = encryptor.options[:attribute]
+              enc_attr        = encryptor_for(attr).options[:attribute]
+              encrypted_value = new(attr => value).send(:read_encrypted_attr, attr)
               arel.where(enc_attr => encrypted_value)
             end
           end
