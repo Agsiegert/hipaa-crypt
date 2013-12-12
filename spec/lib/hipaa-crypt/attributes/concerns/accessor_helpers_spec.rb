@@ -21,7 +21,7 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     context 'when an attribute is provided' do
       it 'returns the value of that attribute' do
         expect(instance).to receive(:_decrypt_test_method).and_return 'attr_value'
-        expect(instance.__enc_get__ :test_method).to eq 'attr_value'
+        expect(instance.send(:__enc_get__, :test_method)).to eq 'attr_value'
       end
     end
   end
@@ -30,7 +30,7 @@ describe HipaaCrypt::Attributes::AccessorHelpers do
     context 'when an attribute and value are provided' do
       it 'sets the attribute value' do
         expect(instance).to receive(:_encrypt_test_method)
-        instance.__enc_set__(:test_method, 'set_value')
+        instance.send(:__enc_set__, :test_method, 'set_value')
       end
     end
   end

@@ -30,13 +30,21 @@ module HipaaCrypt
       super
     end
 
+    # Returns if an attribute is encrypted.
+    # @param [String/Symbol] attr
+    # @return [Boolean]
     def attribute_encrypted?(attr)
       any_class __method__, attr
     end
 
+    # Return the encryptor for the given attribute
+    # @param [String/Symbol] attr - the encrypted attribute
+    # @return [HipaaCrypt::Encryptor]
     def encryptor_for(attr)
       encryptors[attr] ||= any_class(:encryptor_for, attr).with_context(self)
     end
+
+    private
 
     def any_class(*args)
       self.singleton_class.send(*args) || self.class.send(*args)

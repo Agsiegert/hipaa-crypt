@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
 
   spec.name        = "hipaa-crypt"
   spec.version     = HipaaCrypt::VERSION
-  spec.authors     = ["Jason Waldrip"]
-  spec.email       = ["jason@waldrip.net"]
+  spec.authors     = ["Jason Waldrip", "Danny Garcia", "Yun-Hui Fan"]
+  spec.email       = ["jwaldrip@itriagehealth.com", "dgarcia@itriagehealth.com", "yfan@itriagehealth.com"]
   spec.description = "PORO attribute encryption, with ORM support"
   spec.summary     = "Provide a universal wrapper for encrypting data in plain old ruby objects."
-  spec.homepage    = "https://github.com/Healthagen/hipaa-crypt"
+  spec.homepage    = "https://github.com/itriage/hipaa-crypt"
   spec.license     = "MIT"
 
   spec.files         = `git ls-files`.split($/)
@@ -32,6 +32,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "appraisal", "1.0.0.beta2"
+  spec.add_development_dependency "yard"
+  spec.add_development_dependency "redcarpet"
+
 
   # For creating dummy objects
   spec.add_development_dependency "faker"

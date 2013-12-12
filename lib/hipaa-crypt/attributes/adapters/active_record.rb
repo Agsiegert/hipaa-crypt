@@ -20,12 +20,16 @@ module HipaaCrypt
           extend ReEncryptionClassMethods
         end
 
+        # Extends the base encryption logger.
+        # @see HipaaCrypt::Attributes#encryption_logger
         def encryption_logger
           @encryption_logger ||= HipaaCrypt.config.logger.tap do |logger|
             logger.formatter = LogFormatter.new(self) if logger.respond_to? :formatter=
           end
         end
 
+        # Returns an attributes hash with decrypted value.
+        # @return [Hash]
         def attributes
           super.tap do |hash|
             self.class.encrypted_attributes.each do |attr, encryptor|
@@ -36,11 +40,9 @@ module HipaaCrypt
           end
         end
 
-        def __enc_set__(attr, value)
-          send "#{attr}_will_change!" if respond_to?("#{attr}_will_change!") && value != __enc_get__(attr)
-          super
-        end
-
+        # Extends ActiveRecord's #write_attribute to support encrypted attrs.
+        # @param [Symbol/String] attr
+        # @param value
         def write_attribute(attr, value)
           if attribute_encrypted?(attr)
             __enc_set__(attr, value)
@@ -49,12 +51,21 @@ module HipaaCrypt
           end
         end
 
+        # Extends ActiveRecord's #read_attribute to support encrypted attrs.
+        # @param [Symbol/String] attr
         def read_attribute(attr)
           if attribute_encrypted?(attr)
             __enc_get__(attr)
           else
             super(attr)
           end
+        end
+
+        private
+
+        def __enc_set__(attr, value)
+          send "#{attr}_will_change!" if respond_to?("#{attr}_will_change!") && value != __enc_get__(attr)
+          super
         end
 
       end

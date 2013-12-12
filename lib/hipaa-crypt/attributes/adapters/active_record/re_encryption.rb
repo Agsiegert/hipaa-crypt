@@ -4,6 +4,39 @@ module HipaaCrypt
       module ActiveRecord
         module ReEncryptionClassMethods
 
+          # Re-encrypt, logging an error and continuing when an error occurs.
+          #
+          # *NOTE:* options should always be the *_old_* options for encryption.
+          #    - example: instance.re_encrypt(:foo, :bar, key: ENV['OLD_KEY'])
+          #
+          # @!method re_encrypt(*attributes, options={})
+          # @!scope class
+          # @param attributes
+          # @param [Hash] options
+          # @option options [String] :key - The old encryption key.
+          # @option options [Hash/String] :cipher - The old encryption cipher.
+          # @option options [String/Symbol] :iv - The old encryption iv.
+          # @option options [HipaaCrypt::Encryptor] :encryptor - The old encryptor.
+
+          # Re-encrypt and raise error when a failure occurs.
+          #
+          # *NOTE:* options should always be the *_old_* options for encryption.
+          #    - example: instance.re_encrypt(:foo, :bar, key: ENV['OLD_KEY'])
+          #
+          # @!method re_encrypt!(*attributes, options={})
+          # @!scope class
+          # @param attributes
+          # @param [Hash] options
+          # @option options [String] :key - The old encryption key.
+          # @option options [Hash/String] :cipher - The old encryption cipher.
+          # @option options [String/Symbol] :iv - The old encryption iv.
+          # @option options [HipaaCrypt::Encryptor] :encryptor - The old encryptor.
+
+          # @!method method
+          # @!visibility private
+
+          # @!method method=
+          # @!visibility private
           [:re_encrypt, :re_encrypt!].each do |method|
             define_method method do |*args|
               args  = args.dup
@@ -12,6 +45,7 @@ module HipaaCrypt
             end
           end
 
+          # Re-encrypt in batches.
           def re_encrypt_in_batches(method, *args)
             puts_current_model
             success_count, fail_count = 0, 0

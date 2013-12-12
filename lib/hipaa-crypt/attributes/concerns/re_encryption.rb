@@ -5,11 +5,39 @@ module HipaaCrypt
   module Attributes
     module ReEncryption
 
+      # Re-encrypt and return false when an error occurs.
+      #
+      # *NOTE:* options should always be the *_old_* options for encryption.
+      #    - example: instance.re_encrypt(:foo, :bar, key: ENV['OLD_KEY'])
+      #
+      # @!method re_encrypt(*attrs, options={})
+      # @param [Strings/Symbols] attrs - attributes to re-encrypt.
+      # @param [Hash] options - options for the source of the re-encryption.
+      # @option options [String] :key - The old encryption key.
+      # @option options [Hash/String] :cipher - The old encryption cipher.
+      # @option options [String/Symbol] :iv - The old encryption iv.
+      # @option options [HipaaCrypt::Encryptor] :encryptor - The old encryptor.
+      # @return [Boolean]
+
       def re_encrypt(*attrs)
         re_encrypt!(*attrs)
       rescue Error
         false
       end
+
+      # Re-encrypt and raise error when a failure occurs.
+      #
+      # *NOTE:* options should always be the *_old_* options for encryption.
+      #    - example: instance.re_encrypt(:foo, :bar, key: ENV['OLD_KEY'])
+      #
+      # @!method re_encrypt!(*attrs, options={})
+      # @param [Strings/Symbols] attrs - attributes to re-encrypt.
+      # @param [Hash] options - options for the source of the re-encryption.
+      # @option options [String] :key - The old encryption key.
+      # @option options [Hash/String] :cipher - The old encryption cipher.
+      # @option options [String/Symbol] :iv - The old encryption iv.
+      # @option options [HipaaCrypt::Encryptor] :encryptor - The old encryptor.
+      # @return [Boolean]
 
       def re_encrypt!(*attrs)
         options         = attrs.extract_options!
@@ -25,7 +53,7 @@ module HipaaCrypt
           # Decrypt the duplicated instance using the getter and
           # re-encrypt the original instance using the setter
           unless decryptable?(attr) && (!cloned_instance.decryptable?(attr) || __enc_fetch__(attr) == cloned_instance.__enc_fetch__(attr))
-            __enc_set__ attr, cloned_instance.__enc_get__(attr)
+            __enc_set__ attr, cloned_instance.send(:__enc_get__, attr)
             # Confirm we can read the new value
             __enc_get__ attr
           end
@@ -33,6 +61,9 @@ module HipaaCrypt
         true
       end
 
+      # Determines whether or not an attribute is decryptable
+      # @param [String/Symbol] attr
+      # @return boolean
       def decryptable?(attr)
         !!__enc_fetch__(attr)
       end

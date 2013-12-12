@@ -4,6 +4,7 @@ module HipaaCrypt
       module ActiveRecord
         module RelationAdditions
 
+          # Extends ActiveRecord's #where to support encrypted fields.
           def where(opts, *rest)
             return super(opts, *rest) unless opts.is_a? Hash
             encrypted_opts = opts.reduce({}) do |hash, (key, value)|

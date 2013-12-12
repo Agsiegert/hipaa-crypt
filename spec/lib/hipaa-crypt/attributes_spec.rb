@@ -88,13 +88,13 @@ describe HipaaCrypt::Attributes do
       it 'should return an encryptor for a given attribute' do
         encryptor = HipaaCrypt::Encryptor.new
         allow(encryptor).to receive(:with_context).and_return(encryptor)
-        model.set_encrypted_attribute(:foo, encryptor)
+        model.send(:set_encrypted_attribute, :foo, encryptor)
         expect(instance.send(:encryptor_for, :foo)).to eq encryptor
       end
 
       it 'the encryptor should have a context of the instance' do
         encryptor = HipaaCrypt::Encryptor.new
-        model.set_encrypted_attribute(:foo, encryptor)
+        model.send(:set_encrypted_attribute, :foo, encryptor)
         expect(instance.send(:encryptor_for, :foo).context).to eq instance
       end
     end

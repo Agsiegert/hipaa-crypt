@@ -4,6 +4,9 @@ module HipaaCrypt
   module Attributes
     module ClassMethods
 
+      # Returns if an attribute is encrypted.
+      # @param [String/Symbol] attr
+      # @return [Boolean]
       def attribute_encrypted?(attr)
         encryptor_for(attr)
       rescue ArgumentError
@@ -12,29 +15,51 @@ module HipaaCrypt
         true
       end
 
+      # Mark attributes for encryption with the given options.
+      #
+      # @!method encrypt(*attrs, options={})
+      # @param [Strings/Symbols] attrs - attributes to re-encrypt.
+      # @param [Hash] options - options for the source of the re-encryption.
+      # @option options [String] :key - The encryption key.
+      # @option options [Hash/String] :cipher - The encryption cipher. defaults to 'aes-256-cbc'
+      # @option options [String/Symbol] :iv - The encryption iv.
+      # @option options [HipaaCrypt::Encryptor] :encryptor - The encryptor. defaults to HipaaCrypt::Encryptor
+      #
+      # @example Encrypt :foo and :bar
+      #   class MyClass
+      #     include HipaaCrypt::Attributes
+      #
+      #     encrypt :foo, :bar, key: 'my-secret-key'
+      #
+      #   end
       def encrypt(*attrs)
         options = attrs.extract_options!
         attrs.each { |attr| define_encrypted_attr attr, options }
       end
 
+      # Return the encryptor for the given attribute
+      # @param [String/Symbol] attr - the encrypted attribute
+      # @return [HipaaCrypt::Encryptor]
       def encryptor_for(attr)
         encrypted_attributes[attr.to_sym].tap do |encryptor|
           raise ArgumentError, "#{attr} is not encrypted" unless encryptor
         end
       end
 
+      # All the encrypted attributes, with the keys as the attrs and the encryptors as values.
+      # @return [Hash]
       def encrypted_attributes
         @encrypted_attributes ||= {}
         superclass.respond_to?(__method__) ?
           superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
       end
 
+      private
+
       def set_encrypted_attribute(attr, encryptor)
         @encrypted_attributes       ||= {}
         @encrypted_attributes[attr] = encryptor
       end
-
-      private
 
       def define_encrypted_attr(attr, options)
         options             = options.dup

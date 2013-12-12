@@ -2,6 +2,8 @@ module HipaaCrypt
   module Attributes
     module AccessorHelpers
 
+      private
+
       def __enc_get__(attr)
         public_send("_decrypt_#{attr}")
       end
@@ -9,7 +11,7 @@ module HipaaCrypt
       def __enc_fetch__(attr)
         cloned_instance = self.clone
         cloned_instance.extend Module.new { def encryption_logger() @encryption_logger ||= Logger.new('/dev/null') end }
-        cloned_instance.__enc_get__ attr
+        cloned_instance.send :__enc_get__, attr
       rescue Error
         nil
       end
@@ -17,8 +19,6 @@ module HipaaCrypt
       def __enc_set__(attr, value)
         public_send("_encrypt_#{attr}", value)
       end
-
-      private
 
       def read_encrypted_attr(attr)
         public_send "#{encrypted_attribute_for(attr)}"

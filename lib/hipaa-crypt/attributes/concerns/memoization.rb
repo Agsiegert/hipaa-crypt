@@ -7,6 +7,8 @@ module HipaaCrypt
 
       module ClassMethods
 
+        private
+
         def __memoize_method__(method)
           alias_method "_#{method}_without_memoization_", method
           define_method(method) do |*args|

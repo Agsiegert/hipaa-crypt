@@ -35,8 +35,8 @@ describe HipaaCrypt::Attributes::ClassMethods do
       subject(:supermodel) { Class.new { include HipaaCrypt::Attributes } }
       subject(:model) { Class.new supermodel }
       before(:each) do
-        supermodel.set_encrypted_attribute :attr_a, "some super value"
-        model.set_encrypted_attribute :attr_b, "some value"
+        supermodel.send(:set_encrypted_attribute, :attr_a, "some super value")
+        model.send(:set_encrypted_attribute, :attr_b, "some value")
       end
       it 'should merge its hash with the one from its superclass' do
         expect(model.encrypted_attributes).to include attr_a: "some super value",

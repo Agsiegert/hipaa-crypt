@@ -4,6 +4,7 @@ module HipaaCrypt
       module ActiveRecord
         module CallbackSkipper
 
+          # Invoke a save without executing any callbacks.
           def save_without_callbacks
             changed_attrs = changed.reduce({}) do |hash, attr|
               hash.merge attr => read_attribute(attr)

@@ -10,6 +10,9 @@ module HipaaCrypt
   autoload :EncryptedObject, 'hipaa-crypt/encrypted_object'
   autoload :Error, 'hipaa-crypt/error'
 
+  # Returns the Hipaa-Crypt Configuration
+  # @param [Proc] block
+  # @return [HipaaCrypt::Configuration]
   def self.config(&block)
     (@config ||= Configuration.new).tap do |config|
       block.call(config) if block_given?

@@ -18,10 +18,13 @@ module HipaaCrypt
       @options    = ContextualOptions.new(options)
     end
 
+    # @!attribute context
     def context
       options.context
     end
 
+    # @param string - the string to decrypt
+    # @param iv - the iv to pass to the cipher
     def decrypt string, iv = options.get(:iv)
       with_rescue do
         setup_cipher __method__, iv
@@ -30,6 +33,9 @@ module HipaaCrypt
       end
     end
 
+    # Encrypt a value
+    # @param value - the value to encrypt
+    # @param iv - the iv to pass to the cipher
     def encrypt value, iv = options.get(:iv) # Should return [string, iv]
       with_rescue do
         iv    ||= generate_iv
@@ -40,12 +46,14 @@ module HipaaCrypt
       end
     end
 
+    # @!attribute key
     def key
       with_rescue do
         options.get(:key) { raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
       end
     end
 
+    # Returns a duplicate object with the new context.
     def with_context(context)
       dup.tap { |encryptor| encryptor.instance_variable_set :@options, options.with_context(context) }
     end

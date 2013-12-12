@@ -7,6 +7,8 @@ module HipaaCrypt
       @callbacks = [callbacks].flatten.compact
     end
 
+    # Run the provided callbacks
+    # @param context - the value to modify in each callback
     def run(context)
       callbacks.reduce(context) do |output, callback|
         invoke_callback_on_context callback, output

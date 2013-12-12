@@ -6,6 +6,8 @@ module HipaaCrypt
       module ActiveRecord
         module ClassMethods
 
+          private
+
           def define_encrypted_attr(attr, options)
             define_method("#{attr}?"){ !!__enc_get__(attr) }
             super
