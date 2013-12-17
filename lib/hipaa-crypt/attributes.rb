@@ -1,16 +1,12 @@
-require 'active_support/rescuable'
-require 'active_support/concern'
-
 module HipaaCrypt
   module Attributes
 
     autoload :Adapters, 'hipaa-crypt/attributes/adapters'
     autoload :Memoization, 'hipaa-crypt/attributes/concerns/memoization'
-    autoload :AccessorHelpers, 'hipaa-crypt/attributes/concerns/accessor_helpers'
     autoload :ReEncryption, 'hipaa-crypt/attributes/concerns/re_encryption'
     autoload :ClassMethods, 'hipaa-crypt/attributes/class_methods'
+    autoload :Conductor, 'hipaa-crypt/attributes/conductor'
 
-    include AccessorHelpers
     include ReEncryption
 
     extend ActiveSupport::Concern
@@ -41,7 +37,14 @@ module HipaaCrypt
     # @param [String/Symbol] attr - the encrypted attribute
     # @return [HipaaCrypt::Encryptor]
     def encryptor_for(attr)
-      encryptors[attr] ||= any_class(:encryptor_for, attr).with_context(self)
+      conductor_for(attr).encryptor
+    end
+
+    def conductor_for(attr)
+      conductors[attr] ||= begin
+        options = any_class(:encrypted_options_for, attr)
+        Conductor.new(self, options)
+      end
     end
 
     private
@@ -50,8 +53,8 @@ module HipaaCrypt
       self.singleton_class.send(*args) || self.class.send(*args)
     end
 
-    def encryptors
-      @encryptors ||= {}
+    def conductors
+      @conductors ||= {}
     end
 
     def encryption_logger

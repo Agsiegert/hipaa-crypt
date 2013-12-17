@@ -1,5 +1,7 @@
 require 'openssl/cipher'
 require 'active_support/rescuable'
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'logger'
 
 module HipaaCrypt
@@ -8,54 +10,41 @@ module HipaaCrypt
 
     rescue_from(Exception) { |error| Error.copy_and_raise error }
 
-    autoload :ContextualOptions, 'hipaa-crypt/encryptor/contextual_options'
-    attr_reader :options, :cipher
+    # autoload :ContextualOptions, 'hipaa-crypt/encryptor/contextual_options'
+    attr_reader :options, :cipher, :key
 
     def initialize(options={})
-      options     = options.dup
+      options     = options.with_indifferent_access
       self.cipher = options.fetch :cipher, HipaaCrypt.config.cipher
-      options[:key] ||= HipaaCrypt.config.key
-      @options    = ContextualOptions.new(options)
-    end
-
-    # @!attribute context
-    def context
-      options.context
+      @key        = options.fetch :key, HipaaCrypt.config[:key]
+      @options    = options
     end
 
     # @param string - the string to decrypt
     # @param iv - the iv to pass to the cipher
-    def decrypt string, iv = options.get(:iv)
+    def decrypt string
       with_rescue do
         setup_cipher __method__, iv
         value = cipher.update(decode string) + cipher.final
-        Callbacks.new(options.raw_value :after_load).run deserialize value
+        Callbacks.new(options[:after_load]).run deserialize value
       end
     end
 
     # Encrypt a value
     # @param value - the value to encrypt
     # @param iv - the iv to pass to the cipher
-    def encrypt value, iv = options.get(:iv) # Should return [string, iv]
+    def encrypt value # Should return [string, iv]
       with_rescue do
-        iv    ||= generate_iv
-        value = serialize Callbacks.new(options.raw_value :before_encrypt).run value
+        value = serialize Callbacks.new(options[:before_encrypt]).run value
         setup_cipher __method__, iv
         value = encode cipher.update(value) + cipher.final
         [value, iv]
       end
     end
 
-    # @!attribute key
-    def key
-      with_rescue do
-        options.get(:key) { raise(ArgumentError, 'you must provide a key to encrypt an attribute') }
-      end
-    end
-
-    # Returns a duplicate object with the new context.
-    def with_context(context)
-      dup.tap { |encryptor| encryptor.instance_variable_set :@options, options.with_context(context) }
+    # @!attribute iv
+    def iv
+      @iv ||= options[:iv] || cipher.random_iv
     end
 
     protected
@@ -93,10 +82,6 @@ module HipaaCrypt
 
     def encode(value)
       [value].pack('m')
-    end
-
-    def generate_iv
-      SecureRandom.base64(44)
     end
 
     def serialize(value)

@@ -1,3 +1,4 @@
+require 'active_support/all'
 require 'bundler/setup'
 
 module HipaaCrypt
@@ -15,6 +16,18 @@ module HipaaCrypt
   # @return [HipaaCrypt::Configuration]
   def self.config(&block)
     (@config ||= Configuration.new).tap do |config|
+
+      # Other Options
+      config[:silent_re_encrypt] = false
+
+      # The global defaults
+      config[:cipher]    = { name: :AES, key_length: 256, mode: :CBC }
+      config[:logger]    = (defined?(Rails) ? Rails.logger : Logger.new(STDOUT))
+      config[:encryptor] ||= HipaaCrypt::Encryptor
+      config[:prefix]    ||= :encrypted_
+      config[:suffix]    ||= nil
+
+      # Eval the config
       block.call(config) if block_given?
     end
   end

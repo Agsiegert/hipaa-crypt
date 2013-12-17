@@ -8,7 +8,7 @@ module HipaaCrypt
       # @param [String/Symbol] attr
       # @return [Boolean]
       def attribute_encrypted?(attr)
-        encryptor_for(attr)
+        encrypted_options_for(attr.to_sym)
       rescue ArgumentError
         false
       else
@@ -40,46 +40,36 @@ module HipaaCrypt
       # Return the encryptor for the given attribute
       # @param [String/Symbol] attr - the encrypted attribute
       # @return [HipaaCrypt::Encryptor]
-      def encryptor_for(attr)
-        encrypted_attributes[attr.to_sym].tap do |encryptor|
-          raise ArgumentError, "#{attr} is not encrypted" unless encryptor
-        end
+      def encrypted_options_for(attr)
+        raise ArgumentError, "#{attr} is not encrypted" unless encrypted_attributes.has_key? attr.to_sym
+        encrypted_attributes[attr]
       end
 
       # All the encrypted attributes, with the keys as the attrs and the encryptors as values.
       # @return [Hash]
       def encrypted_attributes
-        @encrypted_attributes ||= {}
+        @encrypted_attributes ||= HashWithIndifferentAccess.new
         superclass.respond_to?(__method__) ?
           superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
       end
 
       private
 
-      def set_encrypted_attribute(attr, encryptor)
-        @encrypted_attributes       ||= {}
-        @encrypted_attributes[attr] = encryptor
+      def set_encrypted_attribute(attr, options)
+        @encrypted_attributes       ||= HashWithIndifferentAccess.new
+        @encrypted_attributes[attr] = options
       end
 
       def define_encrypted_attr(attr, options)
-        options             = options.dup
-        encryptor_klass     = options.delete(:encryptor) { Encryptor }
-        options[:prefix]    ||= :encrypted_
-        options[:suffix]    ||= nil
-        options[:attribute] ||= [options[:prefix], attr, options[:suffix]].compact.join
+        options                      = options.merge(HipaaCrypt.config).with_indifferent_access
+        options[:original_attribute] ||= attr
+        options[:attribute]          ||= options.values_at(:prefix, :original_attribute, :suffix).compact.join
 
-        set_encrypted_attribute attr, encryptor_klass.new(options)
+        set_encrypted_attribute attr, options
 
         define_unencrypted_methods_for_attr attr
         alias_unencrypted_methods_for_attr attr
-
-        if options[:iv].is_a?(Symbol) && setter_defined?(options[:iv])
-          define_encrypted_methods_for_attr_with_settable_iv attr
-        elsif options.has_key? :iv
-          define_encrypted_methods_for_attr_with_iv attr
-        else
-          define_encrypted_methods_for_attr attr
-        end
+        define_encrypted_methods_for_attr attr
 
         attr
       end
@@ -87,53 +77,13 @@ module HipaaCrypt
       def define_encrypted_methods_for_attr(attr)
         define_encrypted_attr_getter(attr) do
           with_rescue do
-            enc_val = read_encrypted_attr(attr)
-            return enc_val if enc_val.nil? || enc_val.empty?
-            iv, value = enc_val.split("\n", 2)
-            encryptor_for(attr).decrypt value, iv
+            conductor_for(attr).decrypt
           end
         end
 
         define_encrypted_attr_setter(attr) do |value|
           with_rescue do
-            value, iv = value.nil? ? nil : encryptor_for(attr).encrypt(value)
-            write_encrypted_attr attr, value ? [iv, value].join("\n") : nil
-            value
-          end
-        end
-      end
-
-      def define_encrypted_methods_for_attr_with_iv(attr)
-        define_encrypted_attr_getter(attr) do
-          with_rescue do
-            enc_val = read_encrypted_attr(attr)
-            return enc_val if enc_val.nil? || enc_val.empty?
-            encryptor_for(attr).decrypt enc_val
-          end
-        end
-
-        define_encrypted_attr_setter(attr) do |value|
-          string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
-          write_encrypted_attr attr, string ? string : nil
-          value
-        end
-      end
-
-      def define_encrypted_methods_for_attr_with_settable_iv(attr)
-        define_encrypted_attr_getter(attr) do
-          with_rescue do
-            enc_val = read_encrypted_attr(attr)
-            return enc_val if enc_val.nil? || enc_val.empty?
-            encryptor_for(attr).decrypt enc_val, read_iv(attr)
-          end
-        end
-
-        define_encrypted_attr_setter(attr) do |value|
-          with_rescue do
-            string, iv = value.nil? ? [nil, nil] : encryptor_for(attr).encrypt(value)
-            write_iv attr, iv
-            write_encrypted_attr attr, string ? string : nil
-            value
+            conductor_for(attr).encrypt(value)
           end
         end
       end
@@ -156,8 +106,8 @@ module HipaaCrypt
       end
 
       def alias_unencrypted_methods_for_attr(attr)
-        if (enc = encryptor_for(attr))
-          enc_attr = enc.options[:attribute]
+        if (options = encrypted_options_for(attr))
+          enc_attr = options[:attribute]
           alias_method "#{enc_attr}", "#{attr}" unless method_defined? "#{enc_attr}"
           alias_method "#{enc_attr}=", "#{attr}=" unless method_defined? "#{enc_attr}="
         end
