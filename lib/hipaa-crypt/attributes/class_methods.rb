@@ -61,8 +61,8 @@ module HipaaCrypt
       end
 
       def define_encrypted_attr(attr, options)
-        options                      = options.merge(HipaaCrypt.config).with_indifferent_access
-        options[:original_attribute] ||= attr
+        options                      = options.reverse_merge(HipaaCrypt.config).with_indifferent_access
+        options[:original_attribute] ||= attr.to_s
         options[:attribute]          ||= options.values_at(:prefix, :original_attribute, :suffix).compact.join
 
         set_encrypted_attribute attr, options
@@ -108,9 +108,18 @@ module HipaaCrypt
       def alias_unencrypted_methods_for_attr(attr)
         if (options = encrypted_options_for(attr))
           enc_attr = options[:attribute]
-          alias_method "#{enc_attr}", "#{attr}" unless method_defined? "#{enc_attr}"
-          alias_method "#{enc_attr}=", "#{attr}=" unless method_defined? "#{enc_attr}="
+          alias_method "#{enc_attr}", "#{attr}" if method_defined? "#{attr}"
+          alias_method "#{enc_attr}=", "#{attr}=" if method_defined? "#{attr}="
         end
+      end
+
+      def method_added(method)
+        if attribute_encrypted?(method) && !caller.any? { |method| method.include? 'method_added' }
+          puts "re setting enc for #{method}"
+          options = encrypted_options_for(method)
+          encrypt(method, options)
+        end
+        super
       end
 
       def setter_defined?(method)
