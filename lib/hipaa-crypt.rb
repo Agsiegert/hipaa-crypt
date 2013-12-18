@@ -24,7 +24,7 @@ module HipaaCrypt
       config[:cipher]    = { name: :AES, key_length: 256, mode: :CBC }
       config[:logger]    = (defined?(Rails) ? Rails.logger : Logger.new(STDOUT))
       config[:encryptor] ||= HipaaCrypt::Encryptor
-      config[:prefix]    ||= :encrypted_
+      config[:prefix]    ||= 'encrypted_'
       config[:suffix]    ||= nil
 
       # Eval the config
