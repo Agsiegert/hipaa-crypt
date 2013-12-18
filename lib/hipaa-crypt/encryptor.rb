@@ -24,7 +24,7 @@ module HipaaCrypt
     # @param iv - the iv to pass to the cipher
     def decrypt string
       with_rescue do
-        setup_cipher __method__, iv
+        setup_cipher __method__
         value = cipher.update(decode string) + cipher.final
         Callbacks.new(options[:after_load]).run deserialize value
       end
@@ -36,7 +36,7 @@ module HipaaCrypt
     def encrypt value # Should return [string, iv]
       with_rescue do
         value = serialize Callbacks.new(options[:before_encrypt]).run value
-        setup_cipher __method__, iv
+        setup_cipher __method__
         encode cipher.update(value) + cipher.final
       end
     end
@@ -60,7 +60,7 @@ module HipaaCrypt
       rescue_with_handler(exception) || raise(exception)
     end
 
-    def setup_cipher(mode, iv)
+    def setup_cipher mode
       cipher.reset
       cipher.send(mode)
       cipher.key = key
