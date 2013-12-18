@@ -21,9 +21,10 @@ module HipaaCrypt
       options[:marshal] ? super(value) : value
     end
 
-    def setup_cipher(mode, iv)
+    def setup_cipher mode
+      iv = options[:iv]
       if iv.to_s.length > 0
-        super(mode, iv)
+        super mode
       else
         cipher.reset
         cipher.send(mode)
