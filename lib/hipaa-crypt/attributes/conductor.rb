@@ -33,7 +33,6 @@ module HipaaCrypt
       end
 
       def decrypt
-        puts *caller.first(10), '------'
         return decrypt_with_joined_iv if joined_iv?
         encrypted_value = read
         return encrypted_value if encrypted_value.empty?
