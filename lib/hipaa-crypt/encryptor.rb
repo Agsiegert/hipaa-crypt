@@ -37,8 +37,7 @@ module HipaaCrypt
       with_rescue do
         value = serialize Callbacks.new(options[:before_encrypt]).run value
         setup_cipher __method__, iv
-        value = encode cipher.update(value) + cipher.final
-        [value, iv]
+        encode cipher.update(value) + cipher.final
       end
     end
 
