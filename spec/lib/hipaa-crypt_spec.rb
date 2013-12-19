@@ -29,7 +29,6 @@ describe HipaaCrypt do
       it 'sets Configuration#key' do
         key    = 'a secret key'
         config = HipaaCrypt.config { |c| c.key = key }
-
         expect(config.key).to eq key
       end
     end
