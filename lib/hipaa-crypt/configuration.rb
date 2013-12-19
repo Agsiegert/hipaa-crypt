@@ -8,5 +8,13 @@ module HipaaCrypt
       super(*args)
     end
 
+    def key
+      self['key']
+    end
+
+    def key=(key)
+      self['key'] = key
+    end
+
   end
 end
