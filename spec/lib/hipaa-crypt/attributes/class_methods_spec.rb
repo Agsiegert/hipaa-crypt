@@ -46,47 +46,19 @@ describe HipaaCrypt::Attributes::ClassMethods do
   end
 
   describe '.define_encrypted_attr' do
-    it 'should call set_encrypted_attribute with the attr and an encryptor' do
-      expect(model).to receive(:set_encrypted_attribute).with :foo, an_instance_of(HipaaCrypt::Encryptor) do |attr, encryptor|
-        expect(encryptor.options.options).to include hello: :world
-      end
-      model.send(:define_encrypted_attr, :foo, hello: :world) rescue nil
-    end
+    let(:options) { {some: :option} }
+    let(:config)  { HipaaCrypt.config }
+    before { allow(HipaaCrypt).to receive(:config).and_return config }
 
-    it 'should call define' do
-      expect(model).to receive(:define_unencrypted_methods_for_attr).with(:foo).and_call_original
-      model.send(:define_encrypted_attr, :foo, {})
-    end
+    it 'updates the options hash with HipaaCrypt#config' do
+      expected_options = options.reverse_merge( config )
+      expected_options[:original_attribute] = 'foo'
+      expected_options[:attribute] = 'encrypted_foo'
 
-    it 'should call prefix_unencrypted_methods_for_attr' do
-      options = { prefix: 'a_prefix_' }
-      expect(model).to receive(:alias_unencrypted_methods_for_attr).with(:foo).and_call_original
       model.send(:define_encrypted_attr, :foo, options)
-    end
+      actual_options = model.encrypted_attributes['foo']
 
-    context 'when a setter is defined and there is an iv' do
-      it 'should call define_encrypted_methods_for_attr_with_settable_iv' do
-        options = { iv: :some_iv, prefix: 'a_prefix_' }
-        allow(model).to receive(:setter_defined?).with(options[:iv]).and_return true
-        expect(model).to receive(:define_encrypted_methods_for_attr_with_settable_iv).with(:foo)
-        model.send(:define_encrypted_attr, :foo, options)
-      end
-    end
-
-    context 'when there is an iv but no setter is defined' do
-      it 'should call define_encrypted_methods_for_attr_with_iv' do
-        options = { iv: :some_iv, prefix: 'a_prefix_' }
-        expect(model).to receive(:define_encrypted_methods_for_attr_with_iv).with(:foo)
-        model.send(:define_encrypted_attr, :foo, options)
-      end
-    end
-
-    context 'when there is no iv' do
-      it 'should call define_encrypted_methods_for_attr' do
-        options = { prefix: 'a_prefix_' }
-        expect(model).to receive(:define_encrypted_methods_for_attr).with(:foo)
-        model.send(:define_encrypted_attr, :foo, options)
-      end
+      expect(expected_options).to eq actual_options
     end
   end
 
@@ -109,13 +81,16 @@ describe HipaaCrypt::Attributes::ClassMethods do
 
     context 'defined methods' do
 
-      let(:options) do
-        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo
-      end
+      #let(:options) do
+      #  HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo
+      #end
+      let(:options) { { key: SecureRandom.hex, iv: SecureRandom.hex } }
       let(:instance) { model.new }
-      let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
+      #let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
+      let(:encryptor) { HipaaCrypt::Encryptor.new options }
 
       before(:each) do
+        model.encrypt :foo
         allow(model).to receive(:encryptor_for).and_return(encryptor)
         allow(instance).to receive(:encryptor_for).and_return(encryptor)
         model.send(:define_unencrypted_methods_for_attr, :foo)
@@ -167,177 +142,6 @@ describe HipaaCrypt::Attributes::ClassMethods do
       it 'should be able to encrypt a value' do
         encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
         allow(instance).to receive(:encryptor_for).and_return encryptor
-        expect { instance.foo = "bar" }.to_not raise_error
-      end
-    end
-
-  end
-
-  describe '.define_encrypted_methods_for_attr_with_iv' do
-
-    before(:each) do
-      allow(model).to receive(:method_added)
-      model.send(:attr_accessor, :foo)
-      model.send(:attr_accessor, :foo_iv)
-    end
-
-    it 'should define an encrypting setter' do
-      expect(model).to receive(:method_added).with(:foo=)
-      model.send(:define_encrypted_methods_for_attr_with_iv, :foo)
-    end
-
-    it 'should define an decrypting getter' do
-      expect(model).to receive(:method_added).with(:foo)
-      model.send(:define_encrypted_methods_for_attr_with_iv, :foo)
-    end
-
-    context 'defined methods' do
-
-      let(:options) do
-        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo
-      end
-      let(:instance) { model.new }
-      let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
-
-      before(:each) do
-        allow(model).to receive(:encryptor_for).and_return(encryptor)
-        allow(instance).to receive(:encryptor_for).and_return(encryptor)
-        model.send(:define_unencrypted_methods_for_attr, :foo)
-        model.send(:alias_unencrypted_methods_for_attr, :foo)
-        model.send(:define_encrypted_methods_for_attr_with_iv, :foo)
-      end
-
-      describe 'encrypted attr getter' do
-        it 'should use the attrs encryptor' do
-          expect(instance).to receive(:encrypted_foo).and_return('something')
-          expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
-          instance.foo
-        end
-
-        it 'should use the attrs encryptor to decrypt a value' do
-          encrypted_value = "some value"
-          allow(instance).to receive(:encrypted_foo).and_return(encrypted_value)
-          expect(encryptor).to receive(:decrypt).with(encrypted_value)
-          instance.foo
-        end
-
-        it 'should be able to decrypt a value set by the setter' do
-          encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, iv: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
-          allow(instance).to receive(:encryptor_for).and_return encryptor
-          instance.foo = "bar"
-          expect { instance.foo }.to_not raise_error
-        end
-      end
-
-      describe 'encrypted attr setter' do
-        it 'should use the attrs encryptor' do
-          expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
-          instance.foo = 'value'
-        end
-      end
-
-      it 'should use the attrs encryptor to decrypt a value' do
-        value = "some value"
-        allow(instance).to receive(:encrypted_foo).and_return(value)
-        expect(encryptor).to receive(:encrypt).with(value)
-        instance.foo = value
-      end
-
-      it 'should be able to encrypt a value' do
-        encryptor = HipaaCrypt::Encryptor.new key: SecureRandom.hex, iv: SecureRandom.hex, attribute: :foo, attribute: :encrypted_foo
-        allow(instance).to receive(:encryptor_for).and_return encryptor
-        expect { instance.foo = "bar" }.to_not raise_error
-      end
-    end
-
-  end
-
-  describe '.define_encrypted_methods_for_attr_with_settable_iv' do
-
-    before(:each) do
-      allow(model).to receive(:method_added)
-      model.send(:attr_accessor, :foo)
-      model.send(:attr_accessor, :foo_iv)
-    end
-
-    it 'should define an encrypting setter' do
-      expect(model).to receive(:method_added).with(:foo=)
-      model.send(:define_encrypted_methods_for_attr_with_settable_iv, :foo)
-    end
-
-    it 'should define an decrypting getter' do
-      expect(model).to receive(:method_added).with(:foo)
-      model.send(:define_encrypted_methods_for_attr_with_settable_iv, :foo)
-    end
-
-    context 'defined methods' do
-
-      let(:options) do
-        HipaaCrypt::Encryptor::ContextualOptions.new attribute: :foo, attribute: :encrypted_foo, iv: :foo_iv
-      end
-      let(:instance) { model.new }
-      let(:encryptor) { double encrypt: nil, decrypt: nil, options: options }
-
-      before(:each) do
-        allow(model).to receive(:encryptor_for).and_return(encryptor)
-        allow(instance).to receive(:encryptor_for).and_return(encryptor)
-        model.send(:define_unencrypted_methods_for_attr, :foo)
-        model.send(:alias_unencrypted_methods_for_attr, :foo)
-        model.send(:define_encrypted_methods_for_attr_with_settable_iv, :foo)
-      end
-
-      describe 'encrypted attr getter' do
-        it 'should use the attrs encryptor' do
-          expect(instance).to receive(:encrypted_foo).and_return('something')
-          expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
-          instance.foo
-        end
-
-        it 'should use the attrs encryptor to decrypt a value' do
-          encrypted_value = "some value"
-          allow(instance).to receive(:foo_iv).and_return('iv')
-          allow(instance).to receive(:encrypted_foo).and_return(encrypted_value)
-          expect(encryptor).to receive(:decrypt).with(encrypted_value, 'iv')
-          instance.foo
-        end
-
-        it 'should be able to decrypt a value set by the setter' do
-          encryptor = HipaaCrypt::Encryptor.new(
-            key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, attribute: :encrypted_foo
-          ).with_context(instance)
-          allow(instance).to receive(:encryptor_for).and_return(encryptor)
-          instance.foo = "bar"
-          expect { instance.foo }.to_not raise_error
-        end
-      end
-
-      describe 'encrypted attr setter' do
-        it 'should use the attrs encryptor' do
-          expect(instance).to receive(:encryptor_for).with(:foo).and_return(encryptor)
-          instance.foo = 'value'
-        end
-
-        it 'should set the iv if nil' do
-          encryptor = HipaaCrypt::Encryptor.new(
-            key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, attribute: :encrypted_foo
-          ).with_context(instance)
-          allow(instance).to receive(:encryptor_for).and_return(encryptor)
-          expect { instance.foo = 'bar' }.to change { instance.foo_iv }
-        end
-      end
-
-      it 'should use the attrs encryptor to decrypt a value' do
-        value = "some value"
-        allow(instance).to receive(:encrypted_foo).and_return(value)
-        expect(encryptor).to receive(:encrypt).with(value)
-        instance.foo = value
-      end
-
-      it 'should be able to encrypt a value' do
-        encryptor = HipaaCrypt::Encryptor.new(
-          key: SecureRandom.hex, iv: :foo_iv, attribute: :foo, attribute: :encrypted_foo
-        ).with_context(instance)
-        allow(instance).to receive(:encryptor_for).and_return(encryptor)
         expect { instance.foo = "bar" }.to_not raise_error
       end
     end
