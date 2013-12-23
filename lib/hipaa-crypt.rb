@@ -11,6 +11,10 @@ module HipaaCrypt
   autoload :EncryptedObject, 'hipaa-crypt/encrypted_object'
   autoload :Error, 'hipaa-crypt/error'
 
+  def self.root
+    File.dirname __FILE__
+  end
+
   # Returns the Hipaa-Crypt Configuration
   # @param [Proc] block
   # @return [HipaaCrypt::Configuration]
