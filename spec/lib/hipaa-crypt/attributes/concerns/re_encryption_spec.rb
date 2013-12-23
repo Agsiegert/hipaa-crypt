@@ -3,7 +3,11 @@ require 'spec_helper'
 describe HipaaCrypt::Attributes::ReEncryption do
 
   let(:model) do
-    klass = Class.new { include HipaaCrypt::Attributes }
+    klass = Class.new do
+      include HipaaCrypt::Attributes
+      attr_accessor :foo, :bar, :baz
+    end
+
     klass.encrypt :foo, :bar, :baz, old_options
     klass
   end
@@ -19,13 +23,13 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     def copy_encrypted_attrs(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.each do |var|
+      from.class.encrypted_attributes.map { |attr, encryptor| encryptor[:attribute] }.each do |var|
         to.send "#{var}=", from.send(var)
       end
     end
 
     def encrypted_values_match?(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.all? do |var|
+      from.class.encrypted_attributes.map { |attr, encryptor| encryptor[:attribute] }.all? do |var|
         from.send(var) == to.send(var)
       end
     end
