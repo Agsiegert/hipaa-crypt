@@ -2,7 +2,7 @@ module HipaaCrypt
   module Attributes
     class Conductor
 
-      attr_reader :original_attribute, :options, :instance, :encrypted_attribute
+      attr_reader :original_attribute, :options, :instance, :encrypted_attribute, :encryptor
 
       def initialize(instance, options)
         @options             = options
