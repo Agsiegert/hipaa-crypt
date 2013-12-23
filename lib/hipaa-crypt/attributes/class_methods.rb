@@ -50,24 +50,23 @@ module HipaaCrypt
       def encrypted_attributes
         @encrypted_attributes ||= HashWithIndifferentAccess.new
         superclass.respond_to?(__method__) ?
-          superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
+            superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
       end
 
       private
 
       def set_encrypted_attribute(attr, options)
-        @encrypted_attributes       ||= HashWithIndifferentAccess.new
+        @encrypted_attributes ||= HashWithIndifferentAccess.new
         @encrypted_attributes[attr] = options
       end
 
       def define_encrypted_attr(attr, options)
-        options                      = options.reverse_merge(HipaaCrypt.config).with_indifferent_access
+        options = options.reverse_merge(HipaaCrypt.config).with_indifferent_access
         options[:original_attribute] ||= attr.to_s
-        options[:attribute]          ||= options.values_at(:prefix, :original_attribute, :suffix).compact.join
+        options[:attribute] ||= options.values_at(:prefix, :original_attribute, :suffix).compact.join
 
         set_encrypted_attribute attr, options
 
-        define_unencrypted_methods_for_attr attr
         alias_unencrypted_methods_for_attr attr
         define_encrypted_methods_for_attr attr
 
@@ -100,17 +99,20 @@ module HipaaCrypt
         alias_method "#{attr}=", "_encrypt_#{attr}"
       end
 
-      def define_unencrypted_methods_for_attr(attr)
-        attr_reader attr unless method_defined?("#{attr}")
-        attr_writer attr unless method_defined?("#{attr}=")
-      end
-
       def alias_unencrypted_methods_for_attr(attr)
         if (options = encrypted_options_for(attr))
           enc_attr = options[:attribute]
-          alias_method "#{enc_attr}", "#{attr}" if method_defined? "#{attr}"
-          alias_method "#{enc_attr}=", "#{attr}=" if method_defined? "#{attr}="
+          alias_method "#{enc_attr}", "#{attr}" if method_externally_defined?("#{attr}")
+          alias_method "#{enc_attr}=", "#{attr}=" if method_externally_defined?("#{attr}=")
         end
+      end
+
+      def method_externally_defined?(m)
+        method_defined?(m) && begin
+          filename, line_number = instance_method(m).source_location
+          !filename.include?(HipaaCrypt.root)
+        end
+
       end
 
       def method_added(method)
