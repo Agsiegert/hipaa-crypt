@@ -33,8 +33,8 @@ module HipaaCrypt
         def attributes
           super.tap do |hash|
             self.class.encrypted_attributes.each do |attr, encryptor|
-              hash.delete encryptor.options[:attribute].to_s
-              hash.delete encryptor.options[:attribute].to_sym
+              hash.delete encryptor[:attribute].to_s
+              hash.delete encryptor[:attribute].to_sym
               hash[attr.to_s] = __enc_get__ attr
             end
           end
