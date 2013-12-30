@@ -27,10 +27,11 @@ module HipaaCrypt
 
     def decrypt(*args)
       enkryptors = encryptors.dup
+      value = nil
       until value
         begin
           value = enkryptors.shift.send :decrypt, *args
-        rescue HipaaCrypt::Error::OpenSSLCipherError => e
+        rescue HipaaCrypt::Error::OpenSSLCipherCipherError => e
           retry unless enkryptors.empty?
           raise e
         end
