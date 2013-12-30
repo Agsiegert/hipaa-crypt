@@ -53,6 +53,12 @@ module HipaaCrypt
             superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
       end
 
+      def encryptor_for(attr)
+        encrypted_attributes[attr].tap do |enc_attr|
+          raise ArgumentError, "#{attr} is not encrypted" unless enc_attr
+        end
+      end
+
       private
 
       def set_encrypted_attribute(attr, options)
@@ -66,7 +72,6 @@ module HipaaCrypt
         options[:attribute] ||= options.values_at(:prefix, :original_attribute, :suffix).compact.join
 
         set_encrypted_attribute attr, options
-
         alias_unencrypted_methods_for_attr attr
         define_encrypted_methods_for_attr attr
 
