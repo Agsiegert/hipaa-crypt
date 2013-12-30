@@ -5,14 +5,14 @@ module HipaaCrypt
 
     def initialize( options = {} )
       @merged_options = merge_defaults(options)
-      merged_options[:encryptor] ||= HipaaCrypt::Encryptor
+      @merged_options[:encryptor] = HipaaCrypt::Encryptor if @merged_options[:encryptor] == self.class
       @encryptors = build_encryptors
     end
 
     def merge_defaults(options)
-      default_options = HipaaCrypt.config.except(:encryptor).deep_merge(options)
+      default_options = HipaaCrypt.config.deep_merge(options)
       local_defaults  = default_options.except :defaults
-      local_defaults.deep_merge!( default_options.fetch :defaults, {})
+      local_defaults.deep_merge!( default_options.fetch :defaults, {} )
     end
 
     def build_encryptors
@@ -26,13 +26,13 @@ module HipaaCrypt
     end
 
     def decrypt(*args)
-      enkryptors = encryptors.dup
+      encryptors = self.encryptors.dup
       value = nil
       until value
         begin
-          value = enkryptors.shift.send :decrypt, *args
+          value = encryptors.shift.send :decrypt, *args
         rescue HipaaCrypt::Error::OpenSSLCipherCipherError => e
-          retry unless enkryptors.empty?
+          retry unless encryptors.empty?
           raise e
         end
       end
