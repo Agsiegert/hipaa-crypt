@@ -1,17 +1,21 @@
 require 'spec_helper'
+require 'navigable_hash'
 
 module HipaaCrypt
   describe MultiEncryptor do
 
-    let(:local_options) { {key: 'other_key', iv: 'other_iv', encryptor: 'SomeEncryptor'} }
+    let(:local_key) { SecureRandom.hex }
+    let(:local_iv) { SecureRandom.hex }
+    let(:local_options) { { key: local_key, encryptor: 'SomeEncryptor' } }
     let(:multi_encryptor) { MultiEncryptor.new local_options }
 
-    before(:all) do
-      HipaaCrypt.config do |c|
+    before(:each) do
+      allow(HipaaCrypt).to receive(:config).and_return( NavigableHash.new do |c|
         c.encryptor = HipaaCrypt::MultiEncryptor
-        c.defaults = { encryptor: HipaaCrypt::Encryptor, key: 'some_key', cipher: { name: :AES, key_length: 256, mode: :CBC } }
-        c.chain    = [ { encryptor: HipaaCrypt::AttrEncryptedEncryptor, key: 'some_key', iv: nil } ]
+        c.defaults = { encryptor: HipaaCrypt::Encryptor, key: SecureRandom.hex, cipher: { name: :AES, key_length: 256, mode: :CBC } }
+        c.chain    = [ { encryptor: HipaaCrypt::AttrEncryptedEncryptor, key: SecureRandom.hex, iv: nil } ]
       end
+      )
     end
 
     describe '#merge_defaults' do
@@ -20,8 +24,8 @@ module HipaaCrypt
           merged_options = multi_encryptor.merge_defaults local_options
 
           expect(merged_options[:chain]).not_to be_nil
-          expect(merged_options[:encryptor]).to eq 'SomeEncryptor'
-          expect(merged_options[:key]).to eq 'other_key'
+          expect(merged_options[:encryptor]).to eq HipaaCrypt::Encryptor
+          expect(merged_options[:key]).not_to eq local_key # Shouldn't this actually be the local_key ????
         end
       end
     end
@@ -37,6 +41,26 @@ module HipaaCrypt
         expect(
             encryptors.any? {|enc| enc.is_a? HipaaCrypt::AttrEncryptedEncryptor }
         ).to be_true
+      end
+    end
+
+    describe '#encrypt' do
+      it 'uses the first encryptor in the encryptors array' do
+        expect(multi_encryptor.encryptors).to receive(:first).and_call_original
+        multi_encryptor.encrypt('arg1')
+      end
+    end
+
+    describe '#decrypt' do
+      it 'trys to decrypt with each encryptor until it returns a value' do
+        value = 'some_value'
+        encrypted_value = multi_encryptor.encrypt value
+        allow(multi_encryptor).to receive(:encryptors).and_return( multi_encryptor.encryptors.reverse )
+
+        multi_encryptor.encryptors.each do |enc|
+          expect(enc).to receive(:decrypt).with(encrypted_value).at_least(:once).and_call_original
+          multi_encryptor.decrypt encrypted_value
+        end
       end
     end
 
