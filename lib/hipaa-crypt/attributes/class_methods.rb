@@ -122,7 +122,6 @@ module HipaaCrypt
 
       def method_added(method)
         if attribute_encrypted?(method) && !caller.any? { |method| method.include? 'method_added' }
-          puts "re setting enc for #{method}"
           options = encrypted_options_for(method)
           encrypt(method, options)
         end
