@@ -29,11 +29,11 @@ shared_context 'an active record model' do
 
   let(:model) do
     Class.new(ActiveRecord::Base) do
+      include HipaaCrypt::Attributes
       self.table_name = 'sample_model'
       enc_key         = "areallylongandsecurekeythatnoonewillknow"
       enc_iv          = "astaticivtobeusedonthings"
 
-      include HipaaCrypt::Attributes
       encrypt :email, key: enc_key, iv: enc_iv # static iv
       encrypt :first_name, key: enc_key, iv: :encrypted_first_name_iv # dynamic attribute iv
       encrypt :last_name, key: enc_key # dynamic inline iv
