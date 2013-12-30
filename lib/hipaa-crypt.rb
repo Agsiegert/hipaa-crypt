@@ -10,6 +10,7 @@ module HipaaCrypt
   autoload :Attributes, 'hipaa-crypt/attributes'
   autoload :EncryptedObject, 'hipaa-crypt/encrypted_object'
   autoload :Error, 'hipaa-crypt/error'
+  autoload :MultiEncryptor, 'hipaa-crypt/multi_encryptor'
 
   def self.root
     File.dirname __FILE__
