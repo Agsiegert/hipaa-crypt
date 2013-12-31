@@ -14,7 +14,7 @@ module HipaaCrypt
           end
 
           def alias_unencrypted_methods_for_attr(attr)
-            enc = encryptor_for(attr)
+            enc = encrypted_options_for(attr)
             super unless enc && column_names.include?(enc[:attribute].to_s)
           end
 
@@ -31,8 +31,8 @@ module HipaaCrypt
             def all_attributes_exists?(attribute_names)
               attr_names_with_enc = attribute_names.map do |attr|
                 if attribute_encrypted?(attr)
-                  encryptor = encryptor_for attr
-                  encryptor.options[:attribute]
+                  options = encrypted_options_for attr
+                  options[:attribute]
                 else
                   attr
                 end
