@@ -53,6 +53,7 @@ module HipaaCrypt
           # Decrypt the duplicated instance using the getter and
           # re-encrypt the original instance using the setter
           unless decryptable?(attr) && (!cloned_instance.decryptable?(attr) || __enc_fetch__(attr) == cloned_instance.__enc_fetch__(attr))
+          # unless conductor_for(attr).decryptable? && (!cloned_instance.conductor_for(attr).decryptable? || conductor_for(attr).decrypt == cloned_instance.conductor_for(attr).decrypt)
             __enc_set__ attr, cloned_instance.send(:__enc_get__, attr)
             # Confirm we can read the new value
             __enc_get__ attr

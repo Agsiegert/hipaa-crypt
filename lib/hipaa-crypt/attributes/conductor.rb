@@ -34,6 +34,13 @@ module HipaaCrypt
         write [iv, encrypted_value].join("\n")
       end
 
+      #def decryptable?
+      #  return decryptable_with_joined_iv? if joined_iv?
+      #  encrypted_value = read
+      #  return true if encrypted_value.blank?
+      #  encryptor_from_options.decryptable? encrypted_value
+      #end
+
       def decrypt
         return decrypt_with_joined_iv if joined_iv?
         encrypted_value = read
@@ -46,6 +53,15 @@ module HipaaCrypt
       end
 
       private
+
+      #def decryptable_with_joined_iv?
+      #  encrypted_value = read
+      #  return true if encrypted_value.blank?
+      #  iv, value = encrypted_value.split("\n", 2)
+      #  encryptor = encryptor_from_options iv: iv
+      #  encryptor.decryptable?(value)
+      #end
+
       def decrypt_with_joined_iv
         encrypted_value = read
         return encrypted_value if encrypted_value.blank?
