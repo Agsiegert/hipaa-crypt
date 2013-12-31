@@ -6,7 +6,7 @@ module HipaaCrypt
 
     let(:local_key) { SecureRandom.hex }
     let(:local_iv) { SecureRandom.hex }
-    let(:local_options) { { key: local_key, encryptor: 'SomeEncryptor' } }
+    let(:local_options) { { key: local_key, iv: local_iv } }
     let(:multi_encryptor) { MultiEncryptor.new local_options }
 
     before(:each) do
@@ -25,7 +25,8 @@ module HipaaCrypt
 
           expect(merged_options[:chain]).not_to be_nil
           expect(merged_options[:encryptor]).to eq HipaaCrypt::Encryptor
-          expect(merged_options[:key]).not_to eq local_key # Shouldn't this actually be the local_key ????
+          expect(merged_options[:key]).not_to eq local_key
+          expect(merged_options[:iv]).to eq local_iv
         end
       end
     end
