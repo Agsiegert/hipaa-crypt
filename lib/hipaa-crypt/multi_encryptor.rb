@@ -39,7 +39,7 @@ module HipaaCrypt
 
     # Tries to decrypt the encrypted value with each encryptor unitl it is able to successfully decrypt the value.
     # @param *args [attribute] Takes an arbitrary number of attributes to decrypt.
-    # @return [decrypted_value] Returns the decrypted value. 
+    # @return [decrypted_value] Returns the decrypted value.
     def decrypt(*args)
       encryptors = self.encryptors.dup
       value = nil
