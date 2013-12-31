@@ -53,12 +53,6 @@ module HipaaCrypt
             superclass.send(__method__).merge(@encrypted_attributes) : @encrypted_attributes
       end
 
-      def encryptor_for(attr)
-        encrypted_attributes[attr].tap do |enc_attr|
-          raise ArgumentError, "#{attr} is not encrypted" unless enc_attr
-        end
-      end
-
       private
 
       def set_encrypted_attribute(attr, options)
