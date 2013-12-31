@@ -113,7 +113,8 @@ irb> Poro.re_encrypt :foo, :bar,
 
    When a new MultiEncryptor is initialized, it takes an `options` hash. This `options` hash will contain the defaults and key chain. Any local options passed directly to the MultiEncryptor will override those in the global config **that are not** included in the defaults.
 
-   If the MultiEncryptor fails to decrypt an attribute with the default encryptor and options, it will then try decrypting with the encryptors in the chain. Each encryptor in the chain will have it's own options that will be used for decryption. 
+   If the MultiEncryptor fails to decrypt an attribute with the default encryptor and options, it will then try decrypting with the encryptors in the chain. Each encryptor in the chain will have it's own options that will be used for decryption.
+   
 -
 
 ***fin***
