@@ -22,7 +22,9 @@ module HipaaCrypt
 
       def encrypt(value)
         return encrypt_with_joined_iv(value) if joined_iv?
-        write encryptor_from_options.encrypt value
+        encryptor = encryptor_from_options
+        write_iv encryptor.iv if options[:iv].is_a?(Symbol) && instance.respond_to?(options[:iv])
+        write encryptor.encrypt value
       end
 
       def encrypt_with_joined_iv(value)
@@ -35,10 +37,15 @@ module HipaaCrypt
       def decrypt
         return decrypt_with_joined_iv if joined_iv?
         encrypted_value = read
-        return encrypted_value if encrypted_value.empty?
+        return encrypted_value if encrypted_value.blank?
         encryptor_from_options.decrypt encrypted_value
       end
 
+      def read
+        instance.send encrypted_attribute
+      end
+
+      private
       def decrypt_with_joined_iv
         encrypted_value = read
         return encrypted_value if encrypted_value.blank?
@@ -47,14 +54,12 @@ module HipaaCrypt
         encryptor.decrypt(value)
       end
 
-      private
-
       def write(value)
         instance.send "#{encrypted_attribute}=", value
       end
 
-      def read
-        instance.send encrypted_attribute
+      def write_iv(value)
+        instance.send "#{options[:iv]}=", value
       end
 
       def convert_options(options = self.options)
