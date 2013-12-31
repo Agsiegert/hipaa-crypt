@@ -43,7 +43,7 @@ module HipaaCrypt
 
     # @!attribute iv
     def iv
-      @iv ||= options[:iv] || cipher.random_iv
+      @iv ||= options[:iv] || Base64.encode64(cipher.random_iv)
     end
 
     protected
