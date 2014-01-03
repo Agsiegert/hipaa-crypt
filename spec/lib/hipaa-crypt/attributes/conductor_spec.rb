@@ -65,7 +65,7 @@ module HipaaCrypt
         context 'given an iv in the options' do
           context 'given an iv is a symbol' do
             it 'calls #write_iv with the iv' do
-              raise 'boom!!!'
+              raise 'An iv as a symbol causes Encryptor#setup_cipher to break when setting the iv'
               options[:iv] = :some_iv
               conductor = Conductor.new instance, options
 
