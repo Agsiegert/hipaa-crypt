@@ -65,13 +65,12 @@ module HipaaCrypt
 
         context 'given an iv in the options' do
           context 'given an iv is a symbol' do
-            xit 'calls #write_iv with the iv' do
-              raise 'An iv as a symbol causes Encryptor#setup_cipher to break when setting the iv'
+            it 'calls #write_iv with the iv' do
               options[:iv] = :some_iv
               conductor = Conductor.new instance, options
-
-              expect(conductor).to receive(:write_iv).with(options[:iv]).and_call_original
-              conductor.encrypt value
+              instance.class.send :attr_accessor, :some_iv
+              expect(conductor).to receive(:write_iv).and_call_original
+              expect{ conductor.encrypt value }.to change { instance.some_iv }.to be_present
             end
           end
 
@@ -208,8 +207,10 @@ module HipaaCrypt
         let(:conductor) { Conductor.new instance, {} }
 
         it 'normalizes the options hash' do
-          options = {key1: [:value1], key2: "value2", key1: '1'}
-          expect(conductor.send :convert_options_hash, options).to eq options
+          instance.stub(:value1).and_return 'value_for_value_1'
+
+          options = { key1: [:value1], key2: "value2", key1: 1 }
+          expect(conductor.send :convert_options_hash, options).to eq key1: [instance.value1], key2: "value2", key1: '1'
         end
       end
 
