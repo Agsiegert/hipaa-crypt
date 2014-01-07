@@ -23,7 +23,7 @@ module HipaaCrypt
       def encrypt(value)
         return encrypt_with_joined_iv(value) if joined_iv?
         encryptor = encryptor_from_options
-        write_iv encryptor.iv if options[:iv].is_a?(Symbol) && instance.respond_to?(options[:iv])
+        write_iv encryptor.iv if options[:iv].is_a?(Symbol)
         write encryptor.encrypt value
       end
 
@@ -78,45 +78,45 @@ module HipaaCrypt
         instance.send "#{options[:iv]}=", value
       end
 
-      def convert_options(options = self.options)
-        case options
+      def convert_options(object = self.options)
+        case object
         when Hash
-          convert_options_hash options
+          convert_options_hash object
         when Array
-          convert_options_array options
+          convert_options_array object
         when Symbol
-          convert_options_symbol options
+          convert_options_symbol object
         when Proc
-          convert_options_proc options
+          convert_options_proc object
         else
-          convert_options_value options
+          convert_options_value object
         end
       end
 
-      def convert_options_hash(options)
-        options.reduce({}) do |hash, (key, value)|
-          hash.merge! key => convert_options(value)
+      def convert_options_hash(hash)
+        hash.reduce({}) do |h, (key, value)|
+          h.merge! key => convert_options(value)
         end
       end
 
-      def convert_options_array(options)
-        options.map { |item| convert_options item }
+      def convert_options_array(array)
+        array.map { |item| convert_options item }
       end
 
-      def convert_options_symbol(options)
-        instance.respond_to?(options) ? instance.send(options) : convert_options_value(options)
+      def convert_options_symbol(symbol)
+        instance.respond_to?(symbol) ? instance.send(symbol) : convert_options_value(symbol)
       end
 
-      def convert_options_proc(options)
-        if options.arity == 0
-          instance.instance_eval(&options)
+      def convert_options_proc(proc)
+        if proc.arity == 0
+          instance.instance_eval(&proc)
         else
-          options.call instance
+          proc.call instance
         end
       end
 
-      def convert_options_value(options)
-        options
+      def convert_options_value(value)
+        value
       end
 
 
