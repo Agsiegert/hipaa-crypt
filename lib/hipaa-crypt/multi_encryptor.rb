@@ -1,15 +1,19 @@
 module HipaaCrypt
   class MultiEncryptor
 
-    attr_reader :merged_options, :encryptors
+    attr_reader :options, :encryptors
 
     # Builds the default encryptor and encryptors in the chain with the merged local and global options.
     # @param options [Hash] The default encryptor with options and key chain.
     # @return [HipaaCrypt::MultiEncryptor] Returns the MultiEncryptor instance.
     def initialize( options = {} )
-      @merged_options = merge_defaults(options)
-      @merged_options[:encryptor] = HipaaCrypt::Encryptor if @merged_options[:encryptor] == self.class
+      @options = merge_defaults(options)
+      @options[:encryptor] = HipaaCrypt::Encryptor if @options[:encryptor] == self.class
       @encryptors = build_encryptors
+    end
+
+    def active
+      encryptors.first
     end
 
     # Merges the global and local options appropriately.
@@ -25,8 +29,8 @@ module HipaaCrypt
     # with the merged options.
     # @return [Array] Returns an array with all the initizliaed encryptors.
     def build_encryptors
-      chain = merged_options[:chain] || []
-      all_options = ([merged_options] + chain.map {|opts| merged_options.deep_merge(opts) }).uniq
+      chain = options[:chain] || []
+      all_options = ([options] + chain.map {|opts| options.deep_merge(opts) }).uniq
       all_options.map { |opts| opts.delete(:encryptor) { HipaaCrypt::Encryptor }.new(opts) }
     end
 
@@ -58,6 +62,34 @@ module HipaaCrypt
       !!encryptors.first.decrypt(value)
     rescue Error
       false
+    end
+
+    module ConductorAdditions
+
+      def encrypt
+        sub_conductors.first.encrypt
+      end
+
+      def decrypt
+        sub_conductors = self.sub_conductors
+        value = nil
+        until value
+          begin
+            value = sub_conductors.shift.send :decrypt
+          rescue HipaaCrypt::Error::OpenSSLCipherCipherError => e
+            retry unless sub_conductors.empty?
+            raise e
+          end
+        end
+        value
+      end
+
+      def sub_conductors
+        encryptor_from_options.encryptors.map do |e|
+          Attributes::Conductor.new instance, options.merge(encryptor: e.class)
+        end
+      end
+
     end
 
   end
