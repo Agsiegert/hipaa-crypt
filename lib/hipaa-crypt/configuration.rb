@@ -16,5 +16,9 @@ module HipaaCrypt
       self['key'] = key
     end
 
+    def extractable_options?
+      instance_of?(HipaaCrypt::Configuration)
+    end
+
   end
 end
