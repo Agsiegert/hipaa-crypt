@@ -2,12 +2,12 @@ require 'spec_helper'
 
 describe HipaaCrypt::Encryptor do
 
-  let(:options) { { key: SecureRandom.hex } }
+  let(:options) { {key: SecureRandom.hex} }
   subject(:encryptor) { described_class.new(options) }
 
   describe '.new' do
     context 'if a cipher is provided' do
-      let(:options) { { key: SecureRandom.hex, cipher: 'aes-256-cbc' } }
+      let(:options) { {key: SecureRandom.hex, cipher: 'aes-256-cbc'} }
       it 'should call cipher= with the default options' do
         expect_any_instance_of(described_class)
         .to receive(:cipher=)
@@ -53,7 +53,7 @@ describe HipaaCrypt::Encryptor do
     end
 
     context 'with callbacks' do
-      let(:options) { { key: SecureRandom.hex, after_load: :to_s } }
+      let(:options) { {key: SecureRandom.hex, after_load: :to_s} }
 
       it 'should call run Callbacks using :after_load with the value' do
         encrypted_value
@@ -72,7 +72,7 @@ describe HipaaCrypt::Encryptor do
     let(:value) { %w{foo bar baz raz}.sample }
 
     context 'with callbacks' do
-      let(:options) { { key: SecureRandom.hex, before_encrypt: :to_s } }
+      let(:options) { {key: SecureRandom.hex, before_encrypt: :to_s} }
 
       it 'should call run Callbacks using :after_load with the value' do
         callbacks_double = double.tap { |cb| expect(cb).to receive(:run).with(value) }
@@ -112,7 +112,7 @@ describe HipaaCrypt::Encryptor do
 
     context 'when the value is a Hash' do
       it 'should try to initialize a OpenSSL::Cipher with the result of #cipher_string_from_hash' do
-        hash   = { foo: 'bar' }
+        hash = {foo: 'bar'}
         string = 'foo_bar'
         expect(encryptor).to receive(:cipher_string_from_hash).with(hash).and_return(string)
         expect(OpenSSL::Cipher).to receive(:new).with(string)
@@ -138,7 +138,7 @@ describe HipaaCrypt::Encryptor do
     end
 
     it 'should set the iv on the cipher using the provided iv' do
-      opts = {key: SecureRandom.hex, iv: SecureRandom.hex }
+      opts = {key: SecureRandom.hex, iv: SecureRandom.hex}
       ecytor = described_class.new opts
       expect(ecytor.cipher).to receive(:iv=).with(opts[:iv]).and_call_original
       ecytor.send(:setup_cipher, :decrypt)
@@ -147,8 +147,29 @@ describe HipaaCrypt::Encryptor do
 
   describe '#cipher_string_from_hash' do
     it 'should return a properly formatted string' do
-      string = encryptor.send(:cipher_string_from_hash, { mode: :Abc, name: :foo, key_length: 42 })
+      string = encryptor.send(:cipher_string_from_hash, {mode: :Abc, name: :foo, key_length: 42})
       string.should eq 'foo-42-abc'
+    end
+  end
+
+  describe '#decryptable?' do
+    let(:options2) { { key: SecureRandom.hex } }
+    let(:encryptor1) { HipaaCrypt::Encryptor.new options }
+    let(:encryptor2) { HipaaCrypt::Encryptor.new options2 }
+    let(:value) {'some_value'}
+
+    context 'given a successful decryption' do
+      it 'returns true' do
+        encrypted_value = encryptor1.encrypt value
+        expect(encryptor1.decryptable? encrypted_value).to eq true
+      end
+    end
+
+    context 'given an unsuccessful decryption' do
+      it 'returns false' do
+        encrypted_value = encryptor1.encrypt value
+        expect(encryptor2.decryptable? encrypted_value).to eq false
+      end
     end
   end
 
