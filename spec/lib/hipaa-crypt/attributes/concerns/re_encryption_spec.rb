@@ -12,13 +12,43 @@ describe HipaaCrypt::Attributes::ReEncryption do
     klass
   end
 
+  context 'functions properly with a multi-encryptor' do
+
+    let(:model) do
+      klass = Class.new do
+        include HipaaCrypt::Attributes
+        attr_accessor :foo
+
+        options_generator = proc do
+          {   encryptor: [HipaaCrypt::AttrEncryptedEncryptor, HipaaCrypt::Encryptor].sample,
+              iv: SecureRandom.hex,
+              key: SecureRandom.hex,
+              cipher: { name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample }
+          }
+        end
+
+        encrypt :foo, encryptor: HipaaCrypt::MultiEncryptor, chain: 10.times.map { options_generator.call }
+      end
+    end
+
+    let(:value){ "Some really awesome value" }
+    let(:instance){ model.new }
+
+    it 'should properly re-encrypt' do
+      instance.encrypted_foo = instance.conductor_for(:foo).encryptor_from_options.encryptors.last.encrypt value
+      binding.pry
+      expect { instance.re_encrypt :foo }.to change { instance.encrypted_foo }
+    end
+
+  end
+
   describe '#re_encrypt' do
 
     def generate_options
       {
-        iv:     SecureRandom.hex,
-        key:    SecureRandom.hex,
-        cipher: { name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample }
+          iv: SecureRandom.hex,
+          key: SecureRandom.hex,
+          cipher: {name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample}
       }
     end
 
@@ -80,7 +110,7 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     context 'when :key and :cipher are the only differences' do
-      let(:new_options) { old_options.merge(key: SecureRandom.hex, cipher: { name: :AES, key_length: 192, mode: [:OFB, :CBC, :ECB].sample }) }
+      let(:new_options) { old_options.merge(key: SecureRandom.hex, cipher: {name: :AES, key_length: 192, mode: [:OFB, :CBC, :ECB].sample}) }
       it 'should be able to re-encrypt using the new key' do
         new_instance.re_encrypt!(:foo, :bar, :baz, old_options)
 
