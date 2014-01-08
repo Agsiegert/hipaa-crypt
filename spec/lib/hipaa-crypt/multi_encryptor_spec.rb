@@ -65,5 +65,24 @@ module HipaaCrypt
       end
     end
 
+    describe '#decryptable?' do
+      let(:value) { 'some_value' }
+
+      context 'given a successful decryption' do
+        it 'returns true' do
+          encrypted_value = multi_encryptor.encrypt value
+          expect(multi_encryptor.decryptable? encrypted_value).to eq true
+        end
+      end
+
+      context 'given an unsuccessful decryption' do
+        let(:multi_encryptor2) { MultiEncryptor.new }
+        it 'returns false' do
+          encrypted_value = multi_encryptor.encrypt value
+          expect(multi_encryptor2.decryptable? encrypted_value).to eq false
+        end
+      end
+    end
+
   end
 end
