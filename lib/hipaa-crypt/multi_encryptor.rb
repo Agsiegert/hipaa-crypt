@@ -53,5 +53,12 @@ module HipaaCrypt
       end
       value
     end
+
+    def decryptable?(value)
+      !!encryptors.first.decrypt(value)
+    rescue Error
+      false
+    end
+
   end
 end
