@@ -46,6 +46,12 @@ module HipaaCrypt
       @iv ||= options[:iv] || Base64.encode64(cipher.random_iv)
     end
 
+    def decryptable?(value)
+      !!decrypt(value)
+    rescue Error
+      false
+    end
+
     protected
 
     def cipher=(val)
