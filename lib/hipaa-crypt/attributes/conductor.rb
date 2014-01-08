@@ -6,22 +6,25 @@ module HipaaCrypt
 
       def initialize(instance, options)
         @options             = options
-        @encryptor           = options[:encryptor]
+        @encryptor           = options[:encryptor] || HipaaCrypt::Encryptor
         @encrypted_attribute = options[:attribute]
         @original_attribute  = options[:original_attribute]
         @instance            = instance
+        extend encryptor::ConductorAdditions if encryptor.const_defined?(:ConductorAdditions)
       end
 
       def joined_iv?
         !options.has_key? :iv
       end
+      alias encrypt_joined_iv? joined_iv?
+      alias decrypt_joined_iv? joined_iv?
 
       def encryptor_from_options(options = {})
         @encryptor.new convert_options.merge options
       end
 
       def encrypt(value)
-        return encrypt_with_joined_iv(value) if joined_iv?
+        return encrypt_with_joined_iv(value) if encrypt_joined_iv?
         encryptor = encryptor_from_options
         write_iv encryptor.iv if options[:iv].is_a?(Symbol)
         write encryptor.encrypt value
@@ -35,7 +38,7 @@ module HipaaCrypt
       end
 
       def decryptable?
-        return decryptable_with_joined_iv? if joined_iv?
+        return decryptable_with_joined_iv? if decrypt_joined_iv?
         encrypted_value = read
         return true if encrypted_value.blank?
         encryptor_from_options.decryptable? encrypted_value
