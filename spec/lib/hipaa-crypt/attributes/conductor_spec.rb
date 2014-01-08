@@ -209,8 +209,8 @@ module HipaaCrypt
         it 'normalizes the options hash' do
           instance.stub(:value1).and_return 'value_for_value_1'
 
-          options = { key1: [:value1], key2: "value2", key1: 1 }
-          expect(conductor.send :convert_options_hash, options).to eq key1: [instance.value1], key2: "value2", key1: '1'
+          options = { key1: [:value1], key2: "value2"}
+          expect(conductor.send :convert_options_hash, options).to eq key1: [instance.value1], key2: "value2"
         end
       end
 
@@ -262,6 +262,41 @@ module HipaaCrypt
             expect(options).to receive(:call).with(instance).and_call_original
             conductor.send :convert_options_proc, options
           end
+        end
+      end
+
+      describe '#decryptable?' do
+        context 'given a joined iv' do
+          let(:options) { {encryptor: HipaaCrypt::Encryptor, attribute: 'encrypted_foo'} }
+          let(:conductor) { Conductor.new instance, options }
+          before { conductor.encrypt value }
+
+          it 'calls #decryptable_with_joined_iv?' do
+            expect(conductor).to receive(:decryptable_with_joined_iv?).and_call_original
+            conductor.decryptable?
+          end
+        end
+
+        context 'given an iv in the options' do
+          let(:options) { {encryptor: HipaaCrypt::Encryptor, attribute: 'encrypted_foo', iv: SecureRandom.hex} }
+          let(:conductor) { Conductor.new instance, options }
+          before { conductor.encrypt value }
+
+          it 'calls #decryptable? on the current encryptor' do
+            expect_any_instance_of(HipaaCrypt::Encryptor).to receive(:decryptable?).and_call_original
+            conductor.decryptable?
+          end
+        end
+      end
+
+      describe '#decryptable_with_joined_iv?' do
+        let(:options) { {encryptor: HipaaCrypt::Encryptor, attribute: 'encrypted_foo'} }
+        let(:conductor) { Conductor.new instance, options }
+        before { conductor.encrypt value }
+
+        it 'calls #decryptable? on the current encryptor' do
+          expect_any_instance_of(HipaaCrypt::Encryptor).to receive(:decryptable?).and_call_original
+          conductor.send :decryptable_with_joined_iv?
         end
       end
 
