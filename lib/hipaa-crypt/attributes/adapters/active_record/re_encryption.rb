@@ -47,6 +47,7 @@ module HipaaCrypt
 
           # Re-encrypt in batches.
           def re_encrypt_in_batches(method, *args)
+            args = encrypted_attributes.keys + args unless args.reject { |arg| arg.is_a? Hash }.present?
             puts_current_model
             success_count, fail_count = 0, 0
             find_each do |instance|
