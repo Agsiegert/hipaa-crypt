@@ -15,15 +15,15 @@ describe HipaaCrypt::Attributes::ReEncryption do
   context 'functions properly with a multi-encryptor' do
 
     let(:model) do
-      klass = Class.new do
+      Class.new do
         include HipaaCrypt::Attributes
         attr_accessor :foo
 
         options_generator = proc do
-          {   encryptor: [HipaaCrypt::AttrEncryptedEncryptor, HipaaCrypt::Encryptor].sample,
-              iv: SecureRandom.hex,
-              key: SecureRandom.hex,
-              cipher: { name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample }
+          { encryptor: [HipaaCrypt::AttrEncryptedEncryptor, HipaaCrypt::Encryptor].sample,
+            iv:        SecureRandom.hex,
+            key:       SecureRandom.hex,
+            cipher:    { name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample }
           }
         end
 
@@ -31,13 +31,15 @@ describe HipaaCrypt::Attributes::ReEncryption do
       end
     end
 
-    let(:value){ "Some really awesome value" }
-    let(:instance){ model.new }
+    let(:value) { "Some really awesome value" }
+    let(:instance) { model.new }
 
     it 'should properly re-encrypt' do
-      instance.encrypted_foo = instance.conductor_for(:foo).encryptor_from_options.encryptors.last.encrypt value
-      binding.pry
-      expect { instance.re_encrypt :foo }.to change { instance.encrypted_foo }
+      past_conductor = HipaaCrypt::Attributes::Conductor.new(instance, instance.conductor_for(:foo).encryptor_from_options.encryptors.last.options)
+      past_conductor.encrypt value
+      old_val = instance.encrypted_foo
+      instance.re_encrypt(:foo)
+      expect(old_val).to_not eq instance.encrypted_foo
     end
 
   end
@@ -46,9 +48,9 @@ describe HipaaCrypt::Attributes::ReEncryption do
 
     def generate_options
       {
-          iv: SecureRandom.hex,
-          key: SecureRandom.hex,
-          cipher: {name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample}
+        iv:     SecureRandom.hex,
+        key:    SecureRandom.hex,
+        cipher: { name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample }
       }
     end
 
@@ -59,14 +61,14 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     def encrypted_values_match?(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor[:attribute] }.all? do |var|
-        from.send(var) == to.send(var)
+      from.class.encrypted_attributes.keys.all? do |attr|
+        from.conductor_for(attr).read == to.conductor_for(attr).read
       end
     end
 
     def decrypted_values_match?(from, to)
-      from.class.encrypted_attributes.keys.all? do |var|
-        from.send(:__enc_get__, var) == to.send(:__enc_get__, var)
+      from.class.encrypted_attributes.keys.all? do |attr|
+        from.conductor_for(attr).decrypt == to.conductor_for(attr).decrypt
       end
     end
 
@@ -110,7 +112,7 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     context 'when :key and :cipher are the only differences' do
-      let(:new_options) { old_options.merge(key: SecureRandom.hex, cipher: {name: :AES, key_length: 192, mode: [:OFB, :CBC, :ECB].sample}) }
+      let(:new_options) { old_options.merge(key: SecureRandom.hex, cipher: { name: :AES, key_length: 192, mode: [:OFB, :CBC, :ECB].sample }) }
       it 'should be able to re-encrypt using the new key' do
         new_instance.re_encrypt!(:foo, :bar, :baz, old_options)
 

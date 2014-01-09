@@ -47,22 +47,6 @@ module HipaaCrypt
       end
     end
 
-    def __enc_get__(attr)
-      public_send("_decrypt_#{attr}")
-    end
-
-    def __enc_fetch__(attr)
-      cloned_instance = self.clone
-      cloned_instance.extend Module.new { def encryption_logger() @encryption_logger ||= Logger.new('/dev/null') end }
-      cloned_instance.send :__enc_get__, attr
-    rescue Error
-      nil
-    end
-
-    def __enc_set__(attr, value)
-      public_send("_encrypt_#{attr}", value)
-    end
-
     private
 
     def any_class(*args)
@@ -70,7 +54,7 @@ module HipaaCrypt
     end
 
     def conductors
-      @conductors ||= {}
+      @conductors ||= HashWithIndifferentAccess.new
     end
 
     def encryption_logger

@@ -81,6 +81,9 @@ module HipaaCrypt
 
         define_encrypted_attr_setter(attr) do |value|
           with_rescue do
+            if respond_to?("#{attr}_will_change!") && respond_to?(:read_attribute) && value != read_attribute(attr)
+              send "#{attr}_will_change!"
+            end
             conductor_for(attr).encrypt(value)
           end
         end

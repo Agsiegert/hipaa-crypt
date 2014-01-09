@@ -83,8 +83,8 @@ describe HipaaCrypt::Attributes do
 
     describe '#encryptor_for' do
       it 'should return an encryptor for a given attribute' do
-        encryptor = HipaaCrypt::Encryptor.new
-        conductor = HipaaCrypt::Attributes::Conductor.new( instance, {encryptor: encryptor, attribute: :foo} )
+        encryptor = HipaaCrypt::Encryptor
+        conductor = HipaaCrypt::Attributes::Conductor.new( instance, { encryptor: encryptor, attribute: :foo } )
         allow(instance).to receive(:conductors).and_return({ foo: conductor })
         model.send(:set_encrypted_attribute, :foo, encryptor)
         expect(instance.send(:encryptor_for, :foo)).to eq encryptor

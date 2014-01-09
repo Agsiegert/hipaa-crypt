@@ -9,7 +9,7 @@ module HipaaCrypt
           private
 
           def define_encrypted_attr(attr, options)
-            define_method("#{attr}?"){ !!__enc_get__(attr) }
+            define_method("#{attr}?"){ !!read_attribute(attr) }
             super
           end
 
