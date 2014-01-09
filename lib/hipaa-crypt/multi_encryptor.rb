@@ -88,6 +88,12 @@ module HipaaCrypt
         value
       end
 
+      def decryptable?
+        !!sub_conductors.first.decryptable?
+      rescue Error
+        false
+      end
+
       def sub_conductors
         encryptor_from_options.encryptors.map do |e|
           Attributes::Conductor.new instance, e.options
