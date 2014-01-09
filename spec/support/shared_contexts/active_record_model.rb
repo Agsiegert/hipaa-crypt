@@ -41,8 +41,8 @@ shared_context 'an active record model' do
   end
 
   before(:each) do
-    unless model.count > 100
-      100.times do
+    unless model.count > 10
+      10.times do
         first_name  = Faker::Name.first_name
         last_name   = Faker::Name.last_name
         domain      = Faker::Internet.domain_name
@@ -52,6 +52,10 @@ shared_context 'an active record model' do
         model.create email: email, first_name: first_name, last_name: last_name, age: age
       end
     end
+  end
+
+  after(:each) do
+    model.delete_all
   end
 
 end
