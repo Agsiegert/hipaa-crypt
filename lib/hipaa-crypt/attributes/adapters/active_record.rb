@@ -46,8 +46,7 @@ module HipaaCrypt
         # Returns an attributes hash with only encrypted attributes and their values.
         # @return [Hash]
         def encrypted_attributes
-          keys = self.class.encrypted_attributes.keys.map { |attr| conductor_for(attr).encrypted_attribute }
-          attributes_with_decrypted_values.slice *(keys.map(&:to_s) + keys.map(&:to_sym))
+          active_record_attributes.except(*attributes_without_encrypted_values.keys)
         end
 
         # Extends ActiveRecord's #write_attribute to support encrypted attrs.
