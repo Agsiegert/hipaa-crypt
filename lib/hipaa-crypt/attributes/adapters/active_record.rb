@@ -39,8 +39,7 @@ module HipaaCrypt
         # Returns an attributes hash with decrypted value.
         # @return [Hash]
         def attributes_without_encrypted_values
-          keys = eager_load_conductors.map(&:encrypted_attribute)
-          attributes_with_decrypted_values.except *(keys.map(&:to_s) + keys.map(&:to_sym))
+          attributes_with_decrypted_values.except *eager_load_conductors.map(&:encrypted_attribute)
         end
 
         # Returns an attributes hash with only encrypted attributes and their values.
