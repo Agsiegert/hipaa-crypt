@@ -62,6 +62,7 @@ describe HipaaCrypt::Attributes do
       let(:model) do
         stub_const 'ActiveRecord::Base', Class.new
         allow(ActiveRecord::Base).to receive(:after_initialize)
+        allow_any_instance_of(ActiveRecord::Base).to receive(:attributes)
         Class.new(ActiveRecord::Base) { include HipaaCrypt::Attributes }
       end
 
