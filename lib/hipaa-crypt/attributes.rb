@@ -47,6 +47,12 @@ module HipaaCrypt
       end
     end
 
+    def eager_load_conductors
+      self.class.encrypted_attributes.keys.map do |attr|
+        conductor_for(attr)
+      end
+    end
+
     private
 
     def any_class(*args)

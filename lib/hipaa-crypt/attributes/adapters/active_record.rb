@@ -39,7 +39,7 @@ module HipaaCrypt
         # Returns an attributes hash with decrypted value.
         # @return [Hash]
         def attributes_without_encrypted_values
-          keys = self.class.encrypted_attributes.keys.map { |attr| conductor_for(attr).encrypted_attribute }
+          keys = eager_load_conductors.map(&:encrypted_attribute)
           attributes_with_decrypted_values.except *(keys.map(&:to_s) + keys.map(&:to_sym))
         end
 
