@@ -45,27 +45,31 @@ module HipaaCrypt
         attrs.each do |attr|
 
           # Duplicate the instance and give it the old encryptor
-          current_encryptor_for_attr = encryptor_for(attr)
+          conductor                  = conductor_for(attr)
+          current_encryptor_for_attr = conductor.encryptor_from_options(options)
           options[:encryptor]        ||= current_encryptor_for_attr.class
-          old_encryptor_options      = current_encryptor_for_attr.options.options.deep_merge options
+          old_encryptor_options      = current_encryptor_for_attr.options.deep_merge(options)
           cloned_instance.singleton_class.encrypt(attr, old_encryptor_options)
 
           # Decrypt the duplicated instance using the getter and
           # re-encrypt the original instance using the setter
-          unless decryptable?(attr) && (!cloned_instance.decryptable?(attr) || __enc_fetch__(attr) == cloned_instance.__enc_fetch__(attr))
-            __enc_set__ attr, cloned_instance.send(:__enc_get__, attr)
-            # Confirm we can read the new value
-            __enc_get__ attr
+          if decryptable?(attr) && (cloned_instance.not_decryptable?(attr) || conductor_for(attr).decrypt == cloned_instance.conductor_for(attr).decrypt)
+            true
+          else
+            conductor_for(attr).encrypt cloned_instance.conductor_for(attr).decrypt
           end
         end
-        true
       end
 
       # Determines whether or not an attribute is decryptable
       # @param [String/Symbol] attr
       # @return boolean
       def decryptable?(attr)
-        !!__enc_fetch__(attr)
+        conductor_for(attr).decryptable?
+      end
+
+      def not_decryptable?(attr)
+        !!decryptable?(attr)
       end
 
     end

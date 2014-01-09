@@ -9,13 +9,13 @@ module HipaaCrypt
           private
 
           def define_encrypted_attr(attr, options)
-            define_method("#{attr}?"){ !!__enc_get__(attr) }
+            define_method("#{attr}?"){ !!read_attribute(attr) }
             super
           end
 
           def alias_unencrypted_methods_for_attr(attr)
-            enc = encryptor_for(attr)
-            super unless enc && column_names.include?(enc.options[:attribute].to_s)
+            enc = encrypted_options_for(attr)
+            super unless enc && column_names.include?(enc[:attribute].to_s)
           end
 
           def define_unencrypted_methods_for_attr(attr)
@@ -31,8 +31,8 @@ module HipaaCrypt
             def all_attributes_exists?(attribute_names)
               attr_names_with_enc = attribute_names.map do |attr|
                 if attribute_encrypted?(attr)
-                  encryptor = encryptor_for attr
-                  encryptor.options[:attribute]
+                  options = encrypted_options_for attr
+                  options[:attribute]
                 else
                   attr
                 end

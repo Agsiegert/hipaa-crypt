@@ -3,9 +3,45 @@ require 'spec_helper'
 describe HipaaCrypt::Attributes::ReEncryption do
 
   let(:model) do
-    klass = Class.new { include HipaaCrypt::Attributes }
+    klass = Class.new do
+      include HipaaCrypt::Attributes
+      attr_accessor :foo, :bar, :baz
+    end
+
     klass.encrypt :foo, :bar, :baz, old_options
     klass
+  end
+
+  context 'functions properly with a multi-encryptor' do
+
+    let(:model) do
+      Class.new do
+        include HipaaCrypt::Attributes
+        attr_accessor :foo
+
+        options_generator = proc do
+          { encryptor: [HipaaCrypt::AttrEncryptedEncryptor, HipaaCrypt::Encryptor].sample,
+            iv:        SecureRandom.hex,
+            key:       SecureRandom.hex,
+            cipher:    { name: :AES, key_length: 256, mode: [:OFB, :CBC, :ECB].sample }
+          }
+        end
+
+        encrypt :foo, encryptor: HipaaCrypt::MultiEncryptor, chain: 10.times.map { options_generator.call }
+      end
+    end
+
+    let(:value) { "Some really awesome value" }
+    let(:instance) { model.new }
+
+    it 'should properly re-encrypt' do
+      past_conductor = HipaaCrypt::Attributes::Conductor.new(instance, instance.conductor_for(:foo).encryptor_from_options.encryptors.last.options)
+      past_conductor.encrypt value
+      old_val = instance.encrypted_foo
+      instance.re_encrypt(:foo)
+      expect(old_val).to_not eq instance.encrypted_foo
+    end
+
   end
 
   describe '#re_encrypt' do
@@ -19,20 +55,20 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     def copy_encrypted_attrs(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.each do |var|
+      from.class.encrypted_attributes.map { |attr, encryptor| encryptor[:attribute] }.each do |var|
         to.send "#{var}=", from.send(var)
       end
     end
 
     def encrypted_values_match?(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor.options[:attribute] }.all? do |var|
-        from.send(var) == to.send(var)
+      from.class.encrypted_attributes.keys.all? do |attr|
+        from.conductor_for(attr).read == to.conductor_for(attr).read
       end
     end
 
     def decrypted_values_match?(from, to)
-      from.class.encrypted_attributes.keys.all? do |var|
-        from.send(:__enc_get__, var) == to.send(:__enc_get__, var)
+      from.class.encrypted_attributes.keys.all? do |attr|
+        from.conductor_for(attr).decrypt == to.conductor_for(attr).decrypt
       end
     end
 

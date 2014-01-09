@@ -4,7 +4,10 @@ require 'securerandom'
 describe HipaaCrypt::Attributes do
 
   subject(:model) do
-    Class.new { include HipaaCrypt::Attributes }
+    Class.new do
+      include HipaaCrypt::Attributes
+      attr_accessor :foo
+    end
   end
 
   context 'implementations' do
@@ -14,6 +17,8 @@ describe HipaaCrypt::Attributes do
     shared_examples 'a functioning encryptor' do
       it 'should set an encrypted_value' do
         expect { instance.foo = 'bar' }.to change { instance.encrypted_foo }
+        instance.foo = 'bar'
+        expect(instance.foo).to eq 'bar'
       end
 
       it 'should encrypt successfully' do
@@ -38,14 +43,6 @@ describe HipaaCrypt::Attributes do
     context 'with a static iv' do
       before (:each) do
         model.encrypt :foo, key: SecureRandom.hex, iv: '1234567890123456'
-      end
-      it_should_behave_like 'a functioning encryptor'
-    end
-
-    context 'with an iv setter' do
-      before (:each) do
-        model.send(:attr_accessor, :foo_iv)
-        model.encrypt :foo, key: SecureRandom.hex, iv: :foo_iv
       end
       it_should_behave_like 'a functioning encryptor'
     end
@@ -86,17 +83,13 @@ describe HipaaCrypt::Attributes do
 
     describe '#encryptor_for' do
       it 'should return an encryptor for a given attribute' do
-        encryptor = HipaaCrypt::Encryptor.new
-        allow(encryptor).to receive(:with_context).and_return(encryptor)
+        encryptor = HipaaCrypt::Encryptor
+        conductor = HipaaCrypt::Attributes::Conductor.new( instance, { encryptor: encryptor, attribute: :foo } )
+        allow(instance).to receive(:conductors).and_return({ foo: conductor })
         model.send(:set_encrypted_attribute, :foo, encryptor)
         expect(instance.send(:encryptor_for, :foo)).to eq encryptor
       end
 
-      it 'the encryptor should have a context of the instance' do
-        encryptor = HipaaCrypt::Encryptor.new
-        model.send(:set_encrypted_attribute, :foo, encryptor)
-        expect(instance.send(:encryptor_for, :foo).context).to eq instance
-      end
     end
 
   end

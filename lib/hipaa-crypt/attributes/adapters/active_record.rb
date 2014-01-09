@@ -33,9 +33,9 @@ module HipaaCrypt
         def attributes
           super.tap do |hash|
             self.class.encrypted_attributes.each do |attr, encryptor|
-              hash.delete encryptor.options[:attribute].to_s
-              hash.delete encryptor.options[:attribute].to_sym
-              hash[attr.to_s] = __enc_get__ attr
+              hash.delete encryptor[:attribute].to_s
+              hash.delete encryptor[:attribute].to_sym
+              hash[attr.to_s] = read_attribute(attr)
             end
           end
         end
@@ -45,7 +45,7 @@ module HipaaCrypt
         # @param value
         def write_attribute(attr, value)
           if attribute_encrypted?(attr)
-            __enc_set__(attr, value)
+            conductor_for(attr).encrypt(value)
           else
             super(attr, value)
           end
@@ -55,17 +55,10 @@ module HipaaCrypt
         # @param [Symbol/String] attr
         def read_attribute(attr)
           if attribute_encrypted?(attr)
-            __enc_get__(attr)
+            conductor_for(attr).decrypt
           else
             super(attr)
           end
-        end
-
-        private
-
-        def __enc_set__(attr, value)
-          send "#{attr}_will_change!" if respond_to?("#{attr}_will_change!") && value != __enc_get__(attr)
-          super
         end
 
       end

@@ -92,7 +92,29 @@ irb> Poro.re_encrypt :foo, :bar,
        key: "my old key",
        cipher: { name: :AES, key_length: 256, mode: :CBC }
 ```
+## MuliEncryptor
 
+   The HipaaCrypt::MultiEncryptor allows you to specify a default encryptor with options as well as a chain of encryptors.
+   The MultiEncryptor will first trying decrypting an attribute with the default options. If decryption fails,
+   the MultiEncryptor will then try to decrypt the attribute with each encryptor in the chain until it is able to successfully decrypt a value (or until it runs out of encryptors to decrypt with).
+
+   Using the MultiEncryptor is optional. You can choose to use the MultiEncryptor by specifying it in the config. The defaults and key chain can also be specified in the config. Here's an example:
+
+   	KEYCHAIN = ENV['PHI_KEYS'].split(',')
+
+   	HippaCrypt.config do |config|
+   	  config.encryptor = HipaaCrypt::MultiEncryptor
+   	  config.defaults = { encryptor: HipaaCrypt::Encryptor, key: KEYCHAIN.first }
+   	  config.chain = [
+   	    *KEYCHAIN.map { |key| { key: key } }, # try all the keys using the default option.
+   	    { encryptor: HipaaCrypt::AttrEncryptedEncryptor, key: KEYCHAIN.last, iv: nil }
+   	  ]
+   	end
+
+   When a new MultiEncryptor is initialized, it takes an `options` hash. This `options` hash will contain the defaults and key chain. Any local options passed directly to the MultiEncryptor will override those in the global config **that are not** included in the defaults.
+
+   If the MultiEncryptor fails to decrypt an attribute with the default encryptor and options, it will then try decrypting with the encryptors in the chain. Each encryptor in the chain will have it's own options that will be used for decryption.
+   
 -
 
 ***fin***

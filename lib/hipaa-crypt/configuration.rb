@@ -1,25 +1,23 @@
 require 'logger'
+require 'navigable_hash'
 
 module HipaaCrypt
-  class Configuration
-    attr_accessor :key
-    attr_writer :cipher, :logger, :silent_re_encrypt
+  class Configuration < NavigableHash
 
-    # @!attribute cipher
-    def cipher
-      @cipher ||= { name: :AES, key_length: 256, mode: :CBC }
+    def initialize(*args)
+      super(*args)
     end
 
-    # @!attribute logger
-    def logger
-      begin
-        @logger || (defined?(Rails) ? Rails.logger : Logger.new(STDOUT))
-      end.dup
+    def key
+      self['key']
     end
 
-    # @!attribute silent_re_encrypt
-    def silent_re_encrypt
-      !!@silent_re_encrypt
+    def key=(key)
+      self['key'] = key
+    end
+
+    def extractable_options?
+      instance_of?(HipaaCrypt::Configuration)
     end
 
   end

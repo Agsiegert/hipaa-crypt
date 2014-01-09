@@ -68,15 +68,15 @@ module HipaaCrypt
           end
 
           def print_fail
-            print "\e[0;31;49mF\e[0m" unless HipaaCrypt.config.silent_re_encrypt
+            print "\e[0;95;49mF\e[0m" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def print_success
-            print "\e[0;32;49m.\e[0m" unless HipaaCrypt.config.silent_re_encrypt
+            print "\e[0;36;49m.\e[0m" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def puts_counts(success_count, fail_count)
-            puts "\nRe-Encrypted \e[0;32;49m#{success_count}\e[0m #{name} records \e[0;31;49m#{fail_count}\e[0m failed\n" unless HipaaCrypt.config.silent_re_encrypt
+            puts "\nRe-Encrypted \e[0;36;49m#{success_count}\e[0m #{name} records \e[0;95;49m#{fail_count}\e[0m failed\n" unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def re_encrypt_query_from_args(args)
