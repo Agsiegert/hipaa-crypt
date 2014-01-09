@@ -42,7 +42,7 @@ module HipaaCrypt
       def re_encrypt!(*attrs)
         options         = attrs.extract_options!
         cloned_instance = self.clone
-        attrs.each do |attr|
+        attrs.all? do |attr|
 
           # Duplicate the instance and give it the old encryptor
           conductor                  = conductor_for(attr)
