@@ -18,6 +18,8 @@ module HipaaCrypt
 
         included do
           extend ReEncryptionClassMethods
+          alias_method :active_record_attributes, :attributes
+          alias_method :attributes, :attributes_without_encrypted_values
         end
 
         # Extends the base encryption logger.
@@ -28,16 +30,24 @@ module HipaaCrypt
           end
         end
 
+        def attributes_with_decrypted_values
+          self.class.encrypted_attributes.keys.reduce(active_record_attributes) do |hash, attr|
+            hash.merge attr => read_attribute(attr)
+          end
+        end
+
         # Returns an attributes hash with decrypted value.
         # @return [Hash]
-        def attributes
-          super.tap do |hash|
-            self.class.encrypted_attributes.each do |attr, encryptor|
-              hash.delete encryptor[:attribute].to_s
-              hash.delete encryptor[:attribute].to_sym
-              hash[attr.to_s] = read_attribute(attr)
-            end
-          end
+        def attributes_without_encrypted_values
+          keys = self.class.encrypted_attributes.keys.map { |attr| conductor_for(attr).encrypted_attribute }
+          attributes_with_decrypted_values.except *(keys.map(&:to_s) + keys.map(&:to_sym))
+        end
+
+        # Returns an attributes hash with only encrypted attributes and their values.
+        # @return [Hash]
+        def encrypted_attributes
+          keys = self.class.encrypted_attributes.keys.map { |attr| conductor_for(attr).encrypted_attribute }
+          attributes_with_decrypted_values.slice *(keys.map(&:to_s) + keys.map(&:to_sym))
         end
 
         # Extends ActiveRecord's #write_attribute to support encrypted attrs.
