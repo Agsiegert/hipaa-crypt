@@ -27,17 +27,16 @@ module HipaaCrypt
           end
 
           def perform
-            self.tap do
-              with_messaging do
-                each_instance do |instance|
-                  with_printing do
-                    result = instance.send(instance_method, *args.dup) && instance.save_without_callbacks
-                    result ? successes << instance : failures << instance
-                  end
+            with_messaging do
+              each_instance do |instance|
+                with_printing do
+                  result = instance.send(instance_method, *args.dup) && instance.save_without_callbacks
+                  result ? successes << instance : failures << instance
                 end
-                freeze
               end
+              freeze
             end
+            self
           end
 
           def each_instance(&block)
@@ -57,10 +56,9 @@ module HipaaCrypt
           def with_printing(&block)
             initial_fail_count, initial_success_count = [failures, successes].map(&:count)
             block.call.tap do
-              unless HipaaCrypt.config.silent_re_encrypt
-                print_fail if failures.count > initial_fail_count
-                print_success if successes.count > initial_success_count
-              end
+              return if HipaaCrypt.config.silent_re_encrypt
+              print_fail if failures.count > initial_fail_count
+              print_success if successes.count > initial_success_count
             end
           end
 
