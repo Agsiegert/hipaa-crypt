@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe HipaaCrypt::Attributes::Adapters::ActiveRecord::LogFormatter do
+describe HipaaCrypt::Attributes::Adapters::ActiveRecord do
 
   context 'functions properly with a multi-encryptor' do
 
@@ -66,7 +66,17 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::LogFormatter do
         end
       end
 
-      expect { model.re_encrypt }.to change { model.all.map { |i| i.encrypted_attributes } }
+      expect { model.re_encrypt }.to change { model.all.map(&:encrypted_attributes) }
+    end
+
+    context 'notifications' do
+      it 'should properly notify' do
+        allow(HipaaCrypt.config).to receive(:silent_re_encrypt).and_return(false)
+        allow_any_instance_of(HipaaCrypt::Attributes::Adapters::ActiveRecord::ReEncryptor).to receive(:freeze)
+        expect_any_instance_of(HipaaCrypt::Attributes::Adapters::ActiveRecord::ReEncryptor).to receive(:puts).exactly(2).times
+        expect_any_instance_of(HipaaCrypt::Attributes::Adapters::ActiveRecord::ReEncryptor).to receive(:print).exactly(10).times
+        model.re_encrypt!
+      end
     end
 
   end

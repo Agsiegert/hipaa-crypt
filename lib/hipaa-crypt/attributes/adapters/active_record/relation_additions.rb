@@ -4,6 +4,14 @@ module HipaaCrypt
       module ActiveRecord
         module RelationAdditions
 
+          module Extender
+            def relation(*args)
+              super(*args).tap do |relation|
+                relation.extend RelationAdditions
+              end
+            end
+          end
+
           # Extends ActiveRecord's #where to support encrypted fields.
           def where(opts, *rest)
             return super(opts, *rest) unless opts.is_a? Hash

@@ -11,15 +11,61 @@ module HipaaCrypt
         autoload :LogFormatter, 'hipaa-crypt/attributes/adapters/active_record/log_formatter'
         autoload :Matchers, 'hipaa-crypt/attributes/adapters/active_record/matchers'
         autoload :CallbackSkipper, 'hipaa-crypt/attributes/adapters/active_record/callback_skipper'
-        autoload :ReEncryptionClassMethods, 'hipaa-crypt/attributes/adapters/active_record/re_encryption'
+        autoload :ReEncryptor, 'hipaa-crypt/attributes/adapters/active_record/re_encryptor'
 
         extend ActiveSupport::Concern
         include Matchers
 
         included do
-          extend ReEncryptionClassMethods
+          extend ReEncryption
+          extend RelationAdditions::Extender
           alias_method :active_record_attributes, :attributes
           alias_method :attributes, :attributes_without_encrypted_values
+        end
+
+        module ReEncryption
+
+          # Re-encrypt, logging an error and continuing when an error occurs.
+          #
+          # *NOTE:* options should always be the *_old_* options for encryption.
+          #    - example: instance.re_encrypt(:foo, :bar, key: ENV['OLD_KEY'])
+          #
+          # @!method re_encrypt(*attributes, options={})
+          # @!scope class
+          # @param attributes
+          # @param [Hash] options
+          # @option options [String] :key - The old encryption key.
+          # @option options [Hash/String] :cipher - The old encryption cipher.
+          # @option options [String/Symbol] :iv - The old encryption iv.
+          # @option options [HipaaCrypt::Encryptor] :encryptor - The old encryptor.
+
+          # Re-encrypt and raise error when a failure occurs.
+          #
+          # *NOTE:* options should always be the *_old_* options for encryption.
+          #    - example: instance.re_encrypt(:foo, :bar, key: ENV['OLD_KEY'])
+          #
+          # @!method re_encrypt!(*attributes, options={})
+          # @!scope class
+          # @param attributes
+          # @param [Hash] options
+          # @option options [String] :key - The old encryption key.
+          # @option options [Hash/String] :cipher - The old encryption cipher.
+          # @option options [String/Symbol] :iv - The old encryption iv.
+          # @option options [HipaaCrypt::Encryptor] :encryptor - The old encryptor.
+
+          # @!method method
+          # @!visibility private
+
+          # @!method method=
+          # @!visibility private
+
+
+          [:re_encrypt, :re_encrypt!].each do |method|
+            define_method method do |*args|
+              ReEncryptor.new(self, method, *args).perform
+            end
+          end
+
         end
 
         # Extends the base encryption logger.

@@ -41,9 +41,9 @@ module HipaaCrypt
 
       def re_encrypt!(*attrs)
         options         = attrs.extract_options!
+        attrs = self.class.encrypted_attributes.keys if attrs.blank?
         cloned_instance = self.clone
         attrs.all? do |attr|
-
           # Duplicate the instance and give it the old encryptor
           conductor                  = conductor_for(attr)
           current_encryptor_for_attr = conductor.encryptor_from_options(options)

@@ -9,22 +9,22 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
     describe ".#{method}" do
 
       let(:args) { [:first_name] }
-      let(:result_double) { double }
 
-      it 'call .re_encrypt_query_from_args and return a query' do
-        allow(model).to receive(:re_encrypt_in_batches).and_return(result_double)
-        expect(model).to receive(:re_encrypt_query_from_args).with(args).and_return(model)
-        expect(model.send method, *args).to eq result_double
+      it 'should return a re-encryptor' do
+        expect(model.send method, *args).to be_an HipaaCrypt::Attributes::Adapters::ActiveRecord::ReEncryptor
       end
 
-      it "should should call .re_encrypt_in_batches with #{method} and args" do
-        allow(model).to receive(:re_encrypt_query_from_args).and_return(model)
-        allow(model).to receive(:re_encrypt_in_batches).with(method, *args).and_return(result_double)
-        expect(model.send method, *args).to eq result_double
+      it 'should run perform on the re-encryptor' do
+        encryptor_double = double 'HipaaCrypt::Attributes::Adapters::ActiveRecord::ReEncryptor'
+        allow(HipaaCrypt::Attributes::Adapters::ActiveRecord::ReEncryptor).to receive(:new).and_return(encryptor_double)
+        expect(encryptor_double).to receive(:perform)
+        model.send method, *args
       end
     end
 
   end
+
+=begin
 
   describe '.re_encrypt_in_batches' do
     let(:mock_collection) { 5.times.map { model.create } }
@@ -157,6 +157,8 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord::ClassMethods do
       end
     end
   end
+
+=end
 
   describe '.relation' do
     it 'should extend with Relation additions' do
