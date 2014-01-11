@@ -53,11 +53,8 @@ module HipaaCrypt
 
           # Decrypt the duplicated instance using the getter and
           # re-encrypt the original instance using the setter
-          if decryptable?(attr) && (cloned_instance.not_decryptable?(attr) || conductor_for(attr).decrypt == cloned_instance.conductor_for(attr).decrypt)
-            true
-          else
-            conductor_for(attr).encrypt cloned_instance.conductor_for(attr).decrypt
-          end
+          already_re_encrypted = decryptable?(attr) && (cloned_instance.not_decryptable?(attr) || conductor_for(attr).decrypt == cloned_instance.conductor_for(attr).decrypt)
+          already_re_encrypted || !!(conductor_for(attr).encrypt cloned_instance.conductor_for(attr).decrypt)
         end
       end
 
