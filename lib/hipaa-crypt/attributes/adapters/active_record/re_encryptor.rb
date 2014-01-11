@@ -24,19 +24,24 @@ module HipaaCrypt
             @instance_method = method
             @failures        = []
             @successes       = []
+            singleton_class.alias_method_chain :perform, :messaging unless HipaaCrypt.config.silent_re_encrypt
+            singleton_class.alias_method_chain :each_instance, :messaging unless HipaaCrypt.config.silent_re_encrypt
           end
 
           def perform
-            with_messaging do
-              each_instance do |instance|
-                with_printing do
-                  result = instance.send(instance_method, *args.dup) && instance.save_without_callbacks
-                  result ? successes << instance : failures << instance
-                end
-              end
-              freeze
+            each_instance do |instance|
+              result = instance.send(instance_method, *args.dup) && instance.save_without_callbacks
+              result ? successes << instance : failures << instance
             end
+            freeze
             self
+          end
+
+          def perform_with_messaging
+            puts_starting_message
+            perform_without_messaging.tap do
+              puts_completion_message
+            end
           end
 
           def each_instance(&block)
@@ -46,17 +51,10 @@ module HipaaCrypt
             end
           end
 
-          def with_messaging(&block)
-            puts_starting_message unless HipaaCrypt.config.silent_re_encrypt
-            block.call.tap do
-              puts_completion_message unless HipaaCrypt.config.silent_re_encrypt
-            end
-          end
-
-          def with_printing(&block)
+          def each_instance_with_messaging(&block)
             initial_fail_count, initial_success_count = [failures, successes].map(&:count)
-            block.call.tap do
-              return if HipaaCrypt.config.silent_re_encrypt
+            each_instance_without_messaging do |instance|
+              yield instance
               print_fail if failures.count > initial_fail_count
               print_success if successes.count > initial_success_count
             end
