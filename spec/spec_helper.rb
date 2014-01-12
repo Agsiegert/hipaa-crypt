@@ -11,6 +11,7 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
 ]
 SimpleCov.start do
   add_filter "/spec/"
+  add_filter Gem.dir
 end
 
 require 'hipaa-crypt'
