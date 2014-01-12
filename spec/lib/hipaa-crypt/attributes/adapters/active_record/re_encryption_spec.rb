@@ -66,7 +66,7 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord do
         end
       end
 
-      expect { model.re_encrypt }.to change { model.all.map(&:encrypted_attributes) }
+      expect { model.re_encrypt! }.to change { model.all.map(&:encrypted_attributes) }
     end
 
     context 'notifications' do

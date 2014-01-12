@@ -55,8 +55,9 @@ describe HipaaCrypt::Attributes::ReEncryption do
     end
 
     def copy_encrypted_attrs(from, to)
-      from.class.encrypted_attributes.map { |attr, encryptor| encryptor[:attribute] }.each do |var|
-        to.send "#{var}=", from.send(var)
+      from.class.encrypted_attributes.keys.each do |attr|
+        value = from.conductor_for(attr).read
+        to.conductor_for(attr).send(:write, value)
       end
     end
 

@@ -41,21 +41,26 @@ module HipaaCrypt
 
       def re_encrypt!(*attrs)
         options         = attrs.extract_options!
-        attrs = self.class.encrypted_attributes.keys if attrs.blank?
+        attrs           = self.class.encrypted_attributes.keys if attrs.blank?
         cloned_instance = self.clone
+        cloned_instance.set_singleton_encryption_options(*attrs, options)
         attrs.all? do |attr|
-          # Duplicate the instance and give it the old encryptor
-          conductor                  = conductor_for(attr)
-          current_encryptor_for_attr = conductor.encryptor_from_options(options)
-          options[:encryptor]        ||= current_encryptor_for_attr.class
-          old_encryptor_options      = current_encryptor_for_attr.options.deep_merge(options)
-          cloned_instance.singleton_class.encrypt(attr, old_encryptor_options)
-
-          # Decrypt the duplicated instance using the getter and
-          # re-encrypt the original instance using the setter
-          already_re_encrypted = decryptable?(attr) && (cloned_instance.not_decryptable?(attr) || conductor_for(attr).decrypt == cloned_instance.conductor_for(attr).decrypt)
+          already_re_encrypted = decryptable?(attr) && check_cloned_instance(cloned_instance, attr)
           already_re_encrypted || !!(conductor_for(attr).encrypt cloned_instance.conductor_for(attr).decrypt)
         end
+      end
+
+      def check_cloned_instance(clone = self.clone, attr)
+        clone.not_decryptable?(attr) || conductor_for(attr).decrypt == clone.conductor_for(attr).decrypt
+      end
+
+      def set_singleton_encryption_options(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          existing_options = self.class.encrypted_options_for(attr).except(:prefix, :original_attribute, :suffix, :attribute)
+          singleton_class.encrypt attr, existing_options.deep_merge(options)
+        end
+        conductors.clear
       end
 
       # Determines whether or not an attribute is decryptable
@@ -66,7 +71,7 @@ module HipaaCrypt
       end
 
       def not_decryptable?(attr)
-        !!decryptable?(attr)
+        !decryptable?(attr)
       end
 
     end

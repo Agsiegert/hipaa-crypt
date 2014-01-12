@@ -21,7 +21,7 @@ module HipaaCrypt
     # Instance Methods
 
     def initialize_clone(other_object)
-      @encryptors           = nil
+      @conductors           = nil
       @encrypted_attributes = nil
       super
     end
