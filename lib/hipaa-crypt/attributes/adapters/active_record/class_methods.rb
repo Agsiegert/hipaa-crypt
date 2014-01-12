@@ -18,10 +18,6 @@ module HipaaCrypt
             super unless enc && column_names.include?(enc[:attribute].to_s)
           end
 
-          def define_unencrypted_methods_for_attr(attr)
-            super unless column_names.include? attr.to_s
-          end
-
           def setter_defined?(attr)
             column_names.include? attr.to_s
           end

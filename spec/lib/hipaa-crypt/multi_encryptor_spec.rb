@@ -10,12 +10,13 @@ module HipaaCrypt
     let(:multi_encryptor) { MultiEncryptor.new local_options }
 
     before(:each) do
-      allow(HipaaCrypt).to receive(:config).and_return( NavigableHash.new do |c|
+      stubbed_config = NavigableHash.new do |c|
+        c.prefix    = :encrypted_
         c.encryptor = HipaaCrypt::MultiEncryptor
-        c.defaults = { encryptor: HipaaCrypt::Encryptor, key: SecureRandom.hex, cipher: { name: :AES, key_length: 256, mode: :CBC } }
-        c.chain    = [ { encryptor: HipaaCrypt::AttrEncryptedEncryptor, key: SecureRandom.hex, iv: nil } ]
+        c.defaults  = { encryptor: HipaaCrypt::Encryptor, key: SecureRandom.hex, cipher: { name: :AES, key_length: 256, mode: :CBC } }
+        c.chain     = [{ encryptor: HipaaCrypt::AttrEncryptedEncryptor, key: SecureRandom.hex, iv: nil }]
       end
-      )
+      allow(HipaaCrypt).to receive(:config).and_return(stubbed_config)
     end
 
     describe '#merge_defaults' do
@@ -40,7 +41,7 @@ module HipaaCrypt
       it 'includes the encryptor from the encryptor chain' do
         encryptors = multi_encryptor.build_encryptors
         expect(
-            encryptors.any? {|enc| enc.is_a? HipaaCrypt::AttrEncryptedEncryptor }
+          encryptors.any? { |enc| enc.is_a? HipaaCrypt::AttrEncryptedEncryptor }
         ).to be_true
       end
     end
@@ -54,15 +55,27 @@ module HipaaCrypt
 
     describe '#decrypt' do
       it 'trys to decrypt with each encryptor until it returns a value' do
-        value = 'some_value'
+        value           = 'some_value'
         encrypted_value = multi_encryptor.encrypt value
-        allow(multi_encryptor).to receive(:encryptors).and_return( multi_encryptor.encryptors.reverse )
+        allow(multi_encryptor).to receive(:encryptors).and_return(multi_encryptor.encryptors.reverse)
 
         multi_encryptor.encryptors.each do |enc|
           expect(enc).to receive(:decrypt).with(encrypted_value).at_least(:once).and_call_original
-          multi_encryptor.decrypt encrypted_value
         end
+
+        multi_encryptor.decrypt encrypted_value
       end
+
+      it 'fails after trying all the encryptors' do
+        encrypted_value = 'something that cannot be decrypted'
+
+        multi_encryptor.encryptors.each do |enc|
+          expect(enc).to receive(:decrypt).with(encrypted_value).at_least(:once).and_call_original
+        end
+
+        expect { multi_encryptor.decrypt encrypted_value }.to raise_error
+      end
+
     end
 
     describe '#decryptable?' do
@@ -82,6 +95,48 @@ module HipaaCrypt
           expect(multi_encryptor2.decryptable? encrypted_value).to eq false
         end
       end
+    end
+
+    describe MultiEncryptor::ConductorAdditions do
+
+      let(:model) do
+        Class.new do
+          include HipaaCrypt::Attributes
+          attr_accessor :encrypted_foo
+          encrypt :foo
+        end
+      end
+      let(:conductor) { model.new.conductor_for(:foo) }
+
+      describe '#decrypt' do
+        it 'fails after trying all the encryptors' do
+          allow(conductor).to receive(:sub_conductors){
+            3.times.map {
+              double('HipaaCrypt::Attributes::Conductor').tap { |mock|
+                expect(mock).to receive(:decrypt){ raise HipaaCrypt::Error }
+              }
+            }
+          }
+          expect { conductor.decrypt }.to raise_error
+        end
+      end
+
+      describe '#decryptable?' do
+        context 'given a successful decryption' do
+          it 'returns true' do
+            conductor.encrypt Faker::Lorem.sentence
+            expect(conductor).to be_decryptable
+          end
+        end
+
+        context 'given an unsuccessful decryption' do
+          it 'returns false' do
+            conductor.send :write, SecureRandom.base64
+            expect(conductor).to_not be_decryptable
+          end
+        end
+      end
+
     end
 
   end

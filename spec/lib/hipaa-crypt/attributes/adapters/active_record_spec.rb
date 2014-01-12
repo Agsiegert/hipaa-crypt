@@ -36,6 +36,21 @@ describe HipaaCrypt::Attributes::Adapters::ActiveRecord do
 
     end
 
+    describe '#write_attribute' do
+      context 'when an attribute is encrypted' do
+        it 'should write to the encrypted attribute' do
+          expect { record.write_attribute :email, Faker::Internet.email }.to change { record.encrypted_email }
+        end
+      end
+
+      context 'when an attribute is not encrypted' do
+        it 'should not use a conductor' do
+          expect_any_instance_of(HipaaCrypt::Attributes::Conductor).to_not receive(:encrypt)
+          record.age = 27
+        end
+      end
+    end
+
     if ActiveRecord::VERSION::STRING >= '4.0.0'
       context 'rails 4' do
         describe '.find_by' do

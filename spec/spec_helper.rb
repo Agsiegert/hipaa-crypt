@@ -15,6 +15,8 @@ SimpleCov.start do
 end
 
 require 'hipaa-crypt'
+require 'i18n'
+I18n.enforce_available_locales = false
 
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 

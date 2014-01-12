@@ -46,6 +46,17 @@ describe HipaaCrypt::Attributes::ReEncryption do
 
   describe '#re_encrypt' do
 
+    let(:instance) { model.new }
+    let(:old_options){ {} }
+
+    it 'should not raise errors' do
+      expect(instance).to receive(:re_encrypt!){ raise HipaaCrypt::Error }
+      expect { instance.re_encrypt }.to_not raise_error
+    end
+  end
+
+  describe '#re_encrypt!' do
+
     def generate_options
       {
         iv:     SecureRandom.hex,
