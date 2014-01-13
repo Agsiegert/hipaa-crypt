@@ -17,7 +17,7 @@ in Ruby's Standard Library.
 [AttrEncrypted](https://github.com/attr-encrypted/attr_encrypted) was found to have a code climate score of
 [![Code Climate](http://allthebadges.io/attr-encrypted/attr_encrypted/code_climate.png)](http://allthebadges.io/attr-encrypted/attr_encrypted/code_climate)
 and proved to be a poor implementation of encryption and and overly complex code base. @gerred found that it used all 0s for an initialization
-vector. While it seems that future versions have seemed to address this issue, the overal complexity of the
+vector. While it seems that future versions have addressed this issue, the overall complexity of the
 gem has not improved. After discussion with architecture and core product we have devised a plan to wholly
 own the method of encryption.
 
@@ -61,7 +61,7 @@ end
 
 ## ORM Specific Auto Mixins [To Do]
 
-Modules that upon include of the standard mixin will detect the ancestors of the base class and be automatically included.
+Modules that upon inclusion of the standard mixin will detect the ancestors of the base class and be automatically included.
 
 ### ActiveRecord
 
